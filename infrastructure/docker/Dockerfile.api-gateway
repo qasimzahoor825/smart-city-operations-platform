@@ -1,0 +1,14 @@
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+COPY backend/services/api-gateway/package*.json ./backend/services/api-gateway/
+RUN npm install
+COPY backend/services/api-gateway ./backend/services/api-gateway
+WORKDIR /app/backend/services/api-gateway
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/backend/services/api-gateway ./
+EXPOSE 4000
+CMD ["npm", "run", "dev"]

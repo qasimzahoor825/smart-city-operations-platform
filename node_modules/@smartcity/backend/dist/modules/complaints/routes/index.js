@@ -1,0 +1,26 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.complaintRouter = void 0;
+const express_1 = require("express");
+const common_1 = require("@smartcity/common");
+const controller_1 = require("../controller");
+const auth_1 = require("../../../middleware/auth");
+const audit_1 = require("../../../middleware/audit");
+const validate_1 = require("../../../middleware/validate");
+const validation_1 = require("../validation");
+exports.complaintRouter = (0, express_1.Router)();
+exports.complaintRouter.use(auth_1.requireAuth);
+exports.complaintRouter.get("/", controller_1.complaintController.list);
+exports.complaintRouter.get("/stats", controller_1.complaintController.stats);
+exports.complaintRouter.post("/", (0, audit_1.auditAction)("complaint.created", "complaint"), (0, validate_1.validateBody)(validation_1.createComplaintSchema), controller_1.complaintController.create);
+exports.complaintRouter.get("/:id", controller_1.complaintController.getById);
+exports.complaintRouter.patch("/:id", (0, audit_1.auditAction)("complaint.updated", "complaint"), (0, validate_1.validateBody)(validation_1.updateComplaintSchema), controller_1.complaintController.update);
+exports.complaintRouter.delete("/:id", (0, audit_1.auditAction)("complaint.deleted", "complaint"), controller_1.complaintController.remove);
+exports.complaintRouter.post("/:id/assign", (0, auth_1.requireRole)(common_1.UserRole.OFFICER, common_1.UserRole.DEPARTMENT_HEAD, common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateBody)(validation_1.assignComplaintSchema), controller_1.complaintController.assign);
+exports.complaintRouter.post("/:id/status", (0, auth_1.requireRole)(common_1.UserRole.OFFICER, common_1.UserRole.DEPARTMENT_HEAD, common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateBody)(validation_1.complaintStatusSchema), controller_1.complaintController.status);
+exports.complaintRouter.post("/:id/comments", (0, validate_1.validateBody)(validation_1.commentSchema), controller_1.complaintController.addComment);
+exports.complaintRouter.get("/:id/comments", controller_1.complaintController.listComments);
+exports.complaintRouter.post("/:id/feedback", (0, auth_1.requireRole)(common_1.UserRole.CITIZEN), (0, audit_1.auditAction)("complaint.feedback", "complaint"), (0, validate_1.validateBody)(validation_1.feedbackSchema), controller_1.complaintController.submitFeedback);
+exports.complaintRouter.get("/:id/feedback", auth_1.requireAuth, controller_1.complaintController.getFeedback);
+exports.default = exports.complaintRouter;
+//# sourceMappingURL=index.js.map

@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authRouter = void 0;
+const express_1 = require("express");
+const controller_1 = require("../controller");
+const auth_1 = require("../../../middleware/auth");
+const rate_limit_1 = require("../../../middleware/rate-limit");
+const validate_1 = require("../../../middleware/validate");
+const validation_1 = require("../validation");
+exports.authRouter = (0, express_1.Router)();
+exports.authRouter.post("/register", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.registerSchema), controller_1.authController.register);
+exports.authRouter.post("/login", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.loginSchema), controller_1.authController.login);
+exports.authRouter.post("/refresh", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.refreshSchema), controller_1.authController.refresh);
+exports.authRouter.post("/logout", controller_1.authController.logout);
+exports.authRouter.post("/forgot-password", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.forgotPasswordSchema), controller_1.authController.forgotPassword);
+exports.authRouter.post("/reset-password", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.resetPasswordSchema), controller_1.authController.resetPassword);
+exports.authRouter.post("/verify-email", controller_1.authController.verifyEmail);
+exports.authRouter.get("/me", auth_1.requireAuth, controller_1.authController.me);
+exports.authRouter.patch("/me", auth_1.requireAuth, (0, validate_1.validateBody)(validation_1.updateProfileSchema), controller_1.authController.updateProfile);
+exports.authRouter.get("/sessions", auth_1.requireAuth, controller_1.authController.sessions);
+exports.authRouter.delete("/sessions/:id", auth_1.requireAuth, controller_1.authController.revokeSession);
+exports.authRouter.post("/change-password", auth_1.requireAuth, (0, validate_1.validateBody)(validation_1.changePasswordSchema), controller_1.authController.changePassword);
+exports.default = exports.authRouter;
+//# sourceMappingURL=index.js.map

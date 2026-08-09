@@ -1,0 +1,23 @@
+# Dynamic microservice builder — run a specific service from the monorepo.
+# Build:  docker build -f infrastructure/docker/Dockerfile.microservice --build-arg SERVICE=auth-service .
+ARG NODE_VERSION=20
+
+FROM node:${NODE_VERSION}-alpine AS build
+WORKDIR /app
+ARG SERVICE
+COPY package.json package-lock.json* ./
+RUN npm ci --ignore-scripts || npm install --ignore-scripts
+COPY packages packages
+COPY backend/services ./backend/services
+WORKDIR /app/backend/services/${SERVICE}
+
+FROM node:20-alpine AS runtime
+WORKDIR /app
+ARG SERVICE
+ENV NODE_ENV=production
+COPY --from=build /app/backend/services/${SERVICE}/node_modules ./node_modules
+COPY --from=build /app/backend/services/${SERVICE}/src ./src
+COPY --from=build /app/backend/services/${SERVICE}/package.json ./package.json
+COPY --from=build /app/node_modules/ts-node ./node_modules/ts-node
+EXPOSE 4000
+CMD ["npx", "ts-node", "--transpile-only", "src/index.ts"]

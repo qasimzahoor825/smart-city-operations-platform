@@ -1,0 +1,194 @@
+version: "3.8"
+
+services:
+  # ---------- Infrastructure ----------
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: smartcity_postgres
+    environment:
+      POSTGRES_DB: smartcity_db
+      POSTGRES_USER: smartcity_admin
+      POSTGRES_PASSWORD: smartcity_secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcity_admin -d smartcity_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartcity_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: smartcity_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: smartcity_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # ---------- Application services ----------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api-gateway
+    container_name: smartcity_api_gateway
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      JWT_SECRET: change_me_strong_secret_at_least_32_chars
+      AUTH_SERVICE_URL: http://auth-service:4001
+      COMPLAINT_SERVICE_URL: http://complaint-service:4002
+      PAYMENT_SERVICE_URL: http://payment-service:4003
+      GIS_SERVICE_URL: http://gis-service:4004
+      IOT_SERVICE_URL: http://iot-telemetry-service:4005
+      NOTIFICATION_SERVICE_URL: http://notification-service:4006
+      DEPARTMENT_SERVICE_URL: http://department-service:4007
+    depends_on:
+      - postgres
+      - redis
+
+auth-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: auth-service
+    container_name: smartcity_auth_service
+    ports:
+      - "4001:4001"
+    environment:
+      PORT: 4001
+      JWT_SECRET: change_me_strong_secret_at_least_32_chars
+      REFRESH_SECRET: change_me_another_strong_secret
+      DATABASE_URL: postgresql://smartcity_admin:smartcity_secure_password@postgres:5432/smartcity_db?schema=public
+    depends_on:
+      - postgres
+
+  complaint-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: complaint-service
+    container_name: smartcity_complaint_service
+    ports:
+      - "4002:4002"
+    environment:
+      PORT: 4002
+    depends_on:
+      - postgres
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: payment-service
+    container_name: smartcity_payment_service
+    ports:
+      - "4003:4003"
+    environment:
+      PORT: 4003
+    depends_on:
+      - postgres
+
+  gis-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: gis-service
+    container_name: smartcity_gis_service
+    ports:
+      - "4004:4004"
+    environment:
+      PORT: 4004
+    depends_on:
+      - postgres
+
+  iot-telemetry-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: iot-telemetry-service
+    container_name: smartcity_iot_service
+    ports:
+      - "4005:4005"
+    environment:
+      PORT: 4005
+    depends_on:
+      - kafka
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: notification-service
+    container_name: smartcity_notification_service
+    ports:
+      - "4006:4006"
+    environment:
+      PORT: 4006
+      EMAIL_TRANSPORT: mock-console
+    depends_on:
+      - redis
+
+  department-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.microservice
+      args:
+        SERVICE: department-service
+    container_name: smartcity_department_service
+    ports:
+      - "4007:4007"
+    environment:
+      PORT: 4007
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+    container_name: smartcity_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres_data:

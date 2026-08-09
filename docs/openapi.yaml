@@ -1,0 +1,424 @@
+openapi: 3.0.3
+info:
+  title: SmartCity OS — Enterprise Smart City Operations & Digital Governance Platform API
+  version: 1.0.0
+  description: |
+    Unified event-driven platform unifying citizen portals, municipal department
+    operations, spatial GIS analytics, real-time IoT sensor telemetry and automated
+    emergency command centres. All requests (except auth) are authenticated with a
+    Bearer JWT issued by the Auth service.
+  contact:
+    name: SmartCity OS
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local API Gateway
+tags:
+  - name: Auth
+  - name: Complaints
+  - name: Departments
+  - name: Assets
+  - name: Emergencies
+  - name: Appointments
+  - name: Notifications
+  - name: Payments
+  - name: GIS
+  - name: IoT Telemetry
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a citizen account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password]
+              properties:
+                fullName: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                phoneNumber: { type: string }
+      responses:
+        '201':
+          description: Created — returns AuthSession (access + refresh tokens)
+        '422': { description: Validation failed }
+        '409': { description: Account already exists }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate and obtain tokens
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+                rememberMe: { type: boolean, default: false }
+      responses:
+        '200': { description: AuthSession returned }
+        '401': { description: Invalid credentials }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotate a refresh token for fresh access token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200': { description: New token pair }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      security: [bearerAuth: []]
+      summary: Invalidate a session
+      responses:
+        '200': { description: Logged out }
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset link
+      responses:
+        '200': { description: Always success (do not leak account existence) }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Set a new password with a reset token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200': { description: Password reset }
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify an email address (mock token = base64url(email))
+      responses:
+        '200': { description: Email verified }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      security: [bearerAuth: []]
+      summary: Current authenticated user profile
+      responses:
+        '200': { description: AuthUser }
+
+  /auth/sessions:
+    get:
+      tags: [Auth]
+      security: [bearerAuth: []]
+      summary: List active sessions
+      responses:
+        '200': { description: Array of sessions }
+
+  # ----------------- Complaints -----------------
+  /complaints:
+    get:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: List complaints (paginated, filterable)
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: limit, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: priority, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: citizenId, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Paginated complaints }
+    post:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: Submit a new complaint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description, category]
+              properties:
+                title: { type: string }
+                description: { type: string }
+                category: { type: string }
+                priority: { type: string }
+                latitude: { type: number }
+                longitude: { type: number }
+                address: { type: string }
+      responses:
+        '201': { description: Complaint created }
+
+  /complaints/stats:
+    get:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: Aggregated complaint statistics
+      responses:
+        '200': { description: Stats by status and priority }
+
+  /complaints/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: Get a single complaint
+      responses:
+        '200': { description: Complaint detail }
+        '404': { description: Not found }
+    patch:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: Update a complaint
+      responses:
+        '200': { description: Updated complaint }
+    delete:
+      tags: [Complaints]
+      security: [bearerAuth: [SUPER_ADMIN: []]]
+      summary: Delete a complaint
+      responses:
+        '200': { description: Deleted }
+
+  /complaints/{id}/assign:
+    post:
+      tags: [Complaints]
+      security: [bearerAuth: [OFFICER: [], DEPARTMENT_HEAD: [], SUPER_ADMIN: []]]
+      summary: Assign to an officer / department
+      responses:
+        '200': { description: Assigned }
+
+  /complaints/{id}/status:
+    post:
+      tags: [Complaints]
+      security: [bearerAuth: [OFFICER: [], DEPARTMENT_HEAD: [], SUPER_ADMIN: []]]
+      summary: Advance the complaint state machine
+      responses:
+        '200': { description: Status updated }
+
+  /complaints/{id}/comments:
+    post:
+      tags: [Complaints]
+      security: [bearerAuth: []]
+      summary: Add a comment
+      responses:
+        '201': { description: Comment added }
+
+  # ----------------- Departments -----------------
+  /departments:
+    get:
+      tags: [Departments]
+      security: [bearerAuth: []]
+      summary: List departments
+      responses:
+        '200': { description: Department list }
+    post:
+      tags: [Departments]
+      security: [bearerAuth: [SUPER_ADMIN: []]]
+      summary: Create a department
+      responses:
+        '201': { description: Created }
+
+  /users:
+    get:
+      tags: [Departments]
+      security: [bearerAuth: []]
+      summary: List municipal officers / users
+      parameters:
+        - { name: role, in: query, schema: { type: string } }
+        - { name: department, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Paginated officers }
+
+  # ----------------- Assets -----------------
+  /assets:
+    get:
+      tags: [Assets]
+      security: [bearerAuth: []]
+      summary: List public assets
+      responses:
+        '200': { description: Asset list }
+    post:
+      tags: [Assets]
+      security: [bearerAuth: [OFFICER: [], DEPARTMENT_HEAD: [], SUPER_ADMIN: []]]
+      summary: Register an asset
+      responses:
+        '201': { description: Created }
+  /assets/stats:
+    get:
+      tags: [Assets]
+      security: [bearerAuth: []]
+      summary: Asset health statistics
+      responses:
+        '200': { description: Asset stats }
+
+  # ----------------- Emergencies -----------------
+  /emergencies:
+    get:
+      tags: [Emergencies]
+      security: [bearerAuth: []]
+      summary: List incidents
+      responses:
+        '200': { description: Incident list }
+    post:
+      tags: [Emergencies]
+      security: [bearerAuth: []]
+      summary: Report an emergency
+      responses:
+        '201': { description: Reported }
+  /emergencies/{id}/dispatch:
+    patch:
+      tags: [Emergencies]
+      security: [bearerAuth: [OFFICER: [], DEPARTMENT_HEAD: [], SUPER_ADMIN: []]]
+      summary: Advance dispatch status
+      responses:
+        '200': { description: Updated }
+
+  # ----------------- Notifications -----------------
+  /notifications:
+    get:
+      tags: [Notifications]
+      security: [bearerAuth: []]
+      summary: List notifications for a user
+      parameters:
+        - { name: userId, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Notification list }
+  /notifications/send:
+    post:
+      tags: [Notifications]
+      security: [bearerAuth: []]
+      summary: Dispatch a multi-channel notification (mock transport)
+      responses:
+        '201': { description: Dispatched }
+
+  # ----------------- Payments -----------------
+  /bills:
+    get:
+      tags: [Payments]
+      security: [bearerAuth: []]
+      summary: List utility bills
+      responses:
+        '200': { description: Bills }
+  /pay:
+    post:
+      tags: [Payments]
+      security: [bearerAuth: []]
+      summary: Process a utility payment (mock provider)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, amount]
+              properties:
+                userId: { type: string }
+                billType: { type: string }
+                amount: { type: number }
+                currency: { type: string }
+      responses:
+        '201': { description: Transaction created }
+
+  # ----------------- GIS -----------------
+  /gis/layers:
+    get:
+      tags: [GIS]
+      security: [bearerAuth: []]
+      summary: List GIS layers
+      responses:
+        '200': { description: Layers }
+  /gis/markers:
+    get:
+      tags: [GIS]
+      security: [bearerAuth: []]
+      summary: List map markers
+      responses:
+        '200': { description: Markers }
+
+  # ----------------- IoT -----------------
+  /iot/readings/live:
+    get:
+      tags: [IoT Telemetry]
+      security: [bearerAuth: []]
+      summary: Live sensor readings
+      responses:
+        '200': { description: Live readings }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserRole:
+      type: string
+      enum: [CITIZEN, OFFICER, DEPARTMENT_HEAD, SUPER_ADMIN]
+    AuthUser:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        email: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        isEmailVerified: { type: boolean }
+    AuthSession:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/AuthUser' }
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer }
+    Complaint:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { type: string, enum: [SUBMITTED, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED, REJECTED] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+        category: { type: string }
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: 'Authentication required' }
+    Forbidden:
+      description: Insufficient role
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string, example: 'Insufficient permissions' }
+
+security:
+  - bearerAuth: []

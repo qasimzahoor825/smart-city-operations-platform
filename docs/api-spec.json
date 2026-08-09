@@ -1,0 +1,37 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Enterprise Smart City Operating System API",
+    "version": "1.0.0",
+    "description": "Unified API specification for SmartCity OS API Gateway"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000/api/v1",
+      "description": "Local API Gateway"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate User",
+        "responses": {
+          "200": { "description": "JWT Auth Token" }
+        }
+      }
+    },
+    "/complaints": {
+      "get": { "summary": "Get Grievances" },
+      "post": { "summary": "Submit Grievance" }
+    },
+    "/payments/pay": {
+      "post": { "summary": "Process Utility Payment" }
+    },
+    "/gis/layers": {
+      "get": { "summary": "Fetch GIS Layers" }
+    },
+    "/iot/readings/live": {
+      "get": { "summary": "Get Real-Time Sensor Data" }
+    }
+  }
+}

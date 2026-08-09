@@ -1,0 +1,43 @@
+{
+  "name": "enterprise-smart-city-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified Enterprise Smart City Platform - Microservices & Frontend Workspace",
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:monolith": "npm run dev --prefix backend",
+    "dev:gateway": "npm run dev --prefix backend/services/api-gateway",
+    "dev:auth": "npm run dev --prefix backend/services/auth-service",
+    "dev:complaints": "npm run dev --prefix backend/services/complaint-service",
+    "dev:department": "npm run dev --prefix backend/services/department-service",
+    "dev:payments": "npm run dev --prefix backend/services/payment-service",
+    "dev:gis": "npm run dev --prefix backend/services/gis-service",
+    "dev:iot": "npm run dev --prefix backend/services/iot-telemetry-service",
+    "dev:notifications": "npm run dev --prefix backend/services/notification-service",
+    "dev:services": "concurrently -n gateway,auth,complaints,dept,payments,gis,iot,notify -c blue,green,magenta,cyan,yellow,red,white,blue \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:complaints\" \"npm:dev:department\" \"npm:dev:payments\" \"npm:dev:gis\" \"npm:dev:iot\" \"npm:dev:notifications\"",
+    "dev:all": "concurrently -n frontend,backend \"npm:dev:frontend\" \"npm:dev:services\"",
+    "dev": "concurrently -n frontend,api -c cyan,magenta \"npm:dev:frontend\" \"npm:dev:monolith\"",
+    "start:monolith": "npm run start --prefix backend",
+    "start:frontend": "npm run start --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:packages": "npm run build --prefix packages/common && npm run build --prefix packages/shared",
+    "db:generate": "npm run db:generate --prefix packages/database",
+    "db:push": "npm run db:push --prefix packages/database",
+    "db:seed": "npm run db:seed --prefix backend",
+    "db:seed:reset": "npm run db:seed --prefix backend -- --reset",
+    "test": "npm run test --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix frontend"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "backend/services/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

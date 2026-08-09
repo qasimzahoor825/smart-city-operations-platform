@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userRouter = void 0;
+const express_1 = require("express");
+const common_1 = require("@smartcity/common");
+const controller_1 = require("../controller");
+const auth_1 = require("../../../middleware/auth");
+const audit_1 = require("../../../middleware/audit");
+const validate_1 = require("../../../middleware/validate");
+const validation_1 = require("../validation");
+exports.userRouter = (0, express_1.Router)();
+exports.userRouter.get("/", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateQuery)(validation_1.listUsersQuerySchema), controller_1.userController.list);
+exports.userRouter.get("/me", auth_1.requireAuth, controller_1.userController.me);
+exports.userRouter.post("/", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.created", "user"), (0, validate_1.validateBody)(validation_1.createUserSchema), controller_1.userController.create);
+exports.userRouter.get("/:id", auth_1.requireAuth, (0, auth_1.requireSameUserOrRole)(common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateParams)(validation_1.userIdParamSchema), controller_1.userController.get);
+exports.userRouter.patch("/:id", auth_1.requireAuth, (0, auth_1.requireSameUserOrRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.updated", "user"), (0, validate_1.validateParams)(validation_1.userIdParamSchema), (0, validate_1.validateBody)(validation_1.updateUserSchema), controller_1.userController.update);
+exports.userRouter.patch("/:id/activate", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.activated", "user"), (0, validate_1.validateParams)(validation_1.userIdParamSchema), controller_1.userController.activate);
+exports.userRouter.patch("/:id/deactivate", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.deactivated", "user"), (0, validate_1.validateParams)(validation_1.userIdParamSchema), controller_1.userController.deactivate);
+exports.userRouter.delete("/:id", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.deleted", "user"), (0, validate_1.validateParams)(validation_1.userIdParamSchema), controller_1.userController.remove);
+exports.default = exports.userRouter;
+//# sourceMappingURL=index.js.map
