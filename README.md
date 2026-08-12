@@ -126,6 +126,29 @@ docker-compose up --build
 
 ---
 
+## 🚀 Deploy to Production
+
+Two pieces: the **frontend** (Next.js) on Vercel and the **backend monolith**
+(Express + Socket.io) on a long-running host — serverless Vercel functions kill
+WebSockets and background jobs, so the API can't run as a serverless function.
+
+**1. Backend on Render** (free tier) — one click from the blueprint:
+- Render → **New → Blueprint** → connect `qasimzahoor825/smart-city-operations-platform` → apply `render.yaml`.
+- You get a URL like `https://smartcity-backend.onrender.com`. `JWT_SECRET`/`REFRESH_SECRET` are auto-generated.
+- Optional: add a `MONGODB_URL` (Atlas) for persistence, else it runs on seeded in-memory repos (resets on restart).
+- Container alternative: `docker run -p 4100:4100 -e PORT=4100 ...` built via `infrastructure/docker/Dockerfile.backend`.
+
+**2. Frontend on Vercel:**
+- Import the repo, root directory `frontend`, framework **Next.js**.
+- Environment Variables:
+  ```
+  NEXT_PUBLIC_API_URL=https://smartcity-backend.onrender.com/api/v1
+  NEXT_PUBLIC_SOCKET_URL=https://smartcity-backend.onrender.com
+  ```
+- Redeploy — login now hits the live API. Demo accounts are seeded on boot (see below).
+
+---
+
 ## 🧪 Testing
 
 **Backend** (unit tests, Jest):

@@ -1,0 +1,26 @@
+# Render Blueprint — deploy the SmartCity OS backend monolith in one click.
+# In Render: "New" → "Blueprint" → connect the GitHub repo → apply.
+# The web app itself deploys on Vercel (frontend/, Next.js).
+services:
+  - type: web
+    name: smartcity-backend
+    runtime: node
+    repo: https://github.com/qasimzahoor825/smart-city-operations-platform
+    plan: free
+    installCommand: npm ci
+    buildCommand: npm run build:packages && npm run db:generate --prefix packages/database && npm run build --prefix packages/database && npm run build --prefix backend
+    startCommand: npm run start:monolith
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: EMAIL_TRANSPORT
+        value: mock-console
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REFRESH_SECRET
+        generateValue: true
+      # Optional persistence: set MONGODB_URL to a MongoDB Atlas URI.
+      # Without it the monolith boots with seeded in-memory repositories
+      # (data resets on each deploy/restart — fine for a demo).
