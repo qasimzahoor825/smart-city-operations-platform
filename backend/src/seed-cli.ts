@@ -25,6 +25,11 @@ import {
   seedAnnouncements,
 } from "./core/seed/reference";
 
+export interface SeedDatabaseOptions {
+  /** Drop seeded collections first, then reseed. */
+  reset?: boolean;
+}
+
 const COLLECTIONS_TO_RESET = [
   "complaints",
   "complaint_comments",
@@ -415,8 +420,16 @@ function buildFeedback(resolvedComplaints: (Record<string, unknown> | null)[]): 
 
 async function main(): Promise<void> {
   console.log("🌱 SmartCity OS seeder starting...");
+  await mongoose.connect(config.database.mongoUrl);
+  await seedDatabase({ reset: RESET_ARG });
+  await mongoose.disconnect();
+  console.log("✅ Seeding completed successfully!");
+}
 
-  if (RESET_ARG) {
+export async function seedDatabase(opts: SeedDatabaseOptions = {}): Promise<void> {
+  const { reset = false } = opts;
+
+  if (reset) {
     console.log("🗑️  --reset: dropping seeded collections...");
     for (const name of COLLECTIONS_TO_RESET) {
       await modelFor(name).deleteMany({});
@@ -522,12 +535,11 @@ async function main(): Promise<void> {
   });
   n = await insertIfEmpty("complaint_timelines", timelineDocs);
   console.log(`  complaint_timelines: ${n}`);
-
-  await mongoose.disconnect();
-  console.log("✅ Seeding completed successfully!");
 }
 
-main().catch((err) => {
-  console.error("❌ Seeding failed:", err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error("❌ Seeding failed:", err);
+    process.exit(1);
+  });
+}

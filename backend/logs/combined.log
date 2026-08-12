@@ -37,3 +37,16 @@
 {"level":"info","message":"[bootstrap] provisioned 3 documents into 'announcements'","timestamp":"2026-08-09T20:26:38.057Z"}
 {"level":"info","message":"[sla] sweep complete: 1 breached, 1 escalated","timestamp":"2026-08-09T20:26:38.104Z"}
 {"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-09T20:26:38.114Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-09T23:01:35.047Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-09T23:01:35.218Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T21:25:53.700Z"}
+{"level":"info","message":"[sla] sweep complete: 3 breached, 0 escalated","timestamp":"2026-08-11T21:25:54.162Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T21:25:54.171Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T22:04:40.060Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T22:04:40.223Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T22:32:46.848Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T22:32:47.018Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T22:46:44.346Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T22:46:44.668Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T23:53:40.291Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T23:53:40.543Z"}
