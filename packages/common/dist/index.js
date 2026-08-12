@@ -4,7 +4,7 @@
  * Cross-cutting contracts used by all microservices and the shared frontend.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValidationError = exports.ConflictError = exports.ForbiddenError = exports.UnauthorizedError = exports.NotFoundError = exports.AppError = exports.ALL_ROLES = exports.AppointmentStatus = exports.AssetCategory = exports.AssetStatus = exports.NotificationType = exports.EmergencyStatus = exports.EmergencyType = exports.ComplaintPriority = exports.ComplaintStatus = exports.UserRole = void 0;
+exports.ValidationError = exports.ConflictError = exports.ForbiddenError = exports.UnauthorizedError = exports.NotFoundError = exports.AppError = exports.ALL_ROLES = exports.AppointmentStatus = exports.AssetCategory = exports.AssetStatus = exports.NotificationType = exports.EmergencyStatus = exports.EmergencyType = exports.ComplaintPriority = exports.COMPLAINT_FLOW = exports.ComplaintStatus = exports.UserRole = void 0;
 exports.createApiResponse = createApiResponse;
 exports.createListResponse = createListResponse;
 exports.parsePagination = parsePagination;
@@ -23,12 +23,30 @@ var UserRole;
 var ComplaintStatus;
 (function (ComplaintStatus) {
     ComplaintStatus["SUBMITTED"] = "SUBMITTED";
+    ComplaintStatus["RECEIVED"] = "RECEIVED";
     ComplaintStatus["ASSIGNED"] = "ASSIGNED";
+    ComplaintStatus["UNDER_REVIEW"] = "UNDER_REVIEW";
+    ComplaintStatus["FIELD_INSPECTION"] = "FIELD_INSPECTION";
     ComplaintStatus["IN_PROGRESS"] = "IN_PROGRESS";
     ComplaintStatus["RESOLVED"] = "RESOLVED";
+    ComplaintStatus["CITIZEN_FEEDBACK"] = "CITIZEN_FEEDBACK";
     ComplaintStatus["CLOSED"] = "CLOSED";
     ComplaintStatus["REJECTED"] = "REJECTED";
+    ComplaintStatus["ESCALATED"] = "ESCALATED";
+    ComplaintStatus["CANCELLED"] = "CANCELLED";
 })(ComplaintStatus || (exports.ComplaintStatus = ComplaintStatus = {}));
+/** Ordered complaint lifecycle (primary happy path). */
+exports.COMPLAINT_FLOW = [
+    ComplaintStatus.SUBMITTED,
+    ComplaintStatus.RECEIVED,
+    ComplaintStatus.ASSIGNED,
+    ComplaintStatus.UNDER_REVIEW,
+    ComplaintStatus.FIELD_INSPECTION,
+    ComplaintStatus.IN_PROGRESS,
+    ComplaintStatus.RESOLVED,
+    ComplaintStatus.CITIZEN_FEEDBACK,
+    ComplaintStatus.CLOSED,
+];
 var ComplaintPriority;
 (function (ComplaintPriority) {
     ComplaintPriority["LOW"] = "LOW";
@@ -47,9 +65,11 @@ var EmergencyType;
 var EmergencyStatus;
 (function (EmergencyStatus) {
     EmergencyStatus["REPORTED"] = "REPORTED";
+    EmergencyStatus["ACKNOWLEDGED"] = "ACKNOWLEDGED";
     EmergencyStatus["DISPATCHED"] = "DISPATCHED";
     EmergencyStatus["ON_SCENE"] = "ON_SCENE";
     EmergencyStatus["RESOLVED"] = "RESOLVED";
+    EmergencyStatus["CLOSED"] = "CLOSED";
 })(EmergencyStatus || (exports.EmergencyStatus = EmergencyStatus = {}));
 var NotificationType;
 (function (NotificationType) {
@@ -61,8 +81,13 @@ var NotificationType;
 })(NotificationType || (exports.NotificationType = NotificationType = {}));
 var AssetStatus;
 (function (AssetStatus) {
+    AssetStatus["ACTIVE"] = "ACTIVE";
     AssetStatus["OPERATIONAL"] = "OPERATIONAL";
+    AssetStatus["MAINTENANCE"] = "MAINTENANCE";
     AssetStatus["UNDER_MAINTENANCE"] = "UNDER_MAINTENANCE";
+    AssetStatus["DAMAGED"] = "DAMAGED";
+    AssetStatus["INACTIVE"] = "INACTIVE";
+    AssetStatus["RETIRED"] = "RETIRED";
     AssetStatus["OUT_OF_SERVICE"] = "OUT_OF_SERVICE";
 })(AssetStatus || (exports.AssetStatus = AssetStatus = {}));
 var AssetCategory;

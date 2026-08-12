@@ -36,6 +36,16 @@ export interface StoredPasswordReset {
   createdAt: string;
 }
 
+export interface StoredEmailVerification {
+  id: string;
+  userId: string;
+  email: string;
+  otpHash: string;
+  expiresAt: string;
+  usedAt: string | null;
+  createdAt: string;
+}
+
 /**
  * Test fixtures only. These are NEVER seeded into MongoDB — the repositories
  * start empty and hydate real records from the database on boot. Tests use
@@ -266,11 +276,13 @@ export const seedUsers: StoredUser[] = [
 const users = collection<StoredUser>("users");
 const sessions = collection<StoredSession>("auth_sessions");
 const passwordResets = collection<StoredPasswordReset>("password_resets");
+const emailVerifications = collection<StoredEmailVerification>("email_verifications");
 
 export const authRepository = {
   users,
   sessions,
   passwordResets,
+  emailVerifications,
 
   findByEmail(email: string): StoredUser | undefined {
     return users.all().find((u) => u.email.toLowerCase() === email.toLowerCase());

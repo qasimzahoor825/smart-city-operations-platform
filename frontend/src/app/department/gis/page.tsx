@@ -80,11 +80,11 @@ export default function DepartmentGISPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Live polling — refresh GIS data every 8 seconds for near-real-time state.
+  // Live polling — refresh GIS data every 30 seconds for near-real-time state.
   useEffect(() => {
     const id = setInterval(() => {
       loadAll().catch(() => undefined);
-    }, 8000);
+    }, 30000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

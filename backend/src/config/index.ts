@@ -26,8 +26,24 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || "./uploads",
 
   mail: {
-    transport: process.env.EMAIL_TRANSPORT || "mock-console",
+    transport:
+      process.env.EMAIL_TRANSPORT ||
+      (process.env.SMTP_HOST ? "smtp" : "mock-console"),
     from: process.env.EMAIL_FROM || "SmartCity OS <no-reply@smartcity.gov>",
+    smtp: {
+      host: process.env.SMTP_HOST || "",
+      port: Number(process.env.SMTP_PORT || 587),
+      user: process.env.SMTP_USER || "",
+      pass: process.env.SMTP_PASS || "",
+      secure: process.env.SMTP_SECURE === "true",
+    },
+  },
+
+  sms: {
+    fast2sms: {
+      apiKey: process.env.FAST2SMS_API_KEY || "",
+      senderId: process.env.FAST2SMS_SENDER_ID || "",
+    },
   },
 
   admin: {

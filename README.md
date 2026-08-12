@@ -126,6 +126,32 @@ docker-compose up --build
 
 ---
 
+## 🧪 Testing
+
+**Backend** (unit tests, Jest):
+
+```bash
+cd backend && npm test
+```
+
+**Frontend** (Playwright E2E against the running stack):
+
+```bash
+cd frontend
+
+# Start the full stack once (see Quickstart) …
+npm run dev:all        # from repo root: Web on :3000, API on :4000
+
+# … then run the E2E suite
+npm run e2e
+```
+
+The E2E suite covers the landing page reference (hero, live metric ticker, navigation,
+zero horizontal overflow across breakpoints), the public pages, RBAC-protected route
+redirects, auth failure handling, and the Super Admin login → GIS portal flow.
+
+---
+
 ## 🔐 Demo Accounts
 
 | Role | Email | Password |

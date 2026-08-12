@@ -25,9 +25,11 @@ const auditAction = (action: string) => (req: Request) => {
 
 export const authController = {
   register: asyncHandler(async (req: Request, res: Response) => {
-    const session = await authService.register(req.body, sessionContext(req));
+    const result = await authService.register(req.body, sessionContext(req));
     auditAction("user.registered")(req);
-    res.status(201).json(createApiResponse(true, "Account created", session));
+    res.status(201).json(
+      createApiResponse(true, "Account created. Check your email for the verification code.", result),
+    );
   }),
 
   login: asyncHandler(async (req: Request, res: Response) => {
@@ -127,8 +129,19 @@ export const authController = {
     res.json(createApiResponse(true, "Password has been reset. Please log in again."));
   }),
 
-  verifyEmail: asyncHandler(async (_req: Request, res: Response) => {
-    res.json(createApiResponse(true, "Email verified"));
+  verifyEmail: asyncHandler(async (req: Request, res: Response) => {
+    const session = await authService.verifyEmailOtp(
+      req.body?.email ?? "",
+      req.body?.otp ?? "",
+      sessionContext(req),
+    );
+    auditAction("auth.email_verified")(req);
+    res.json(createApiResponse(true, "Email verified. Welcome to SmartCity OS!", session));
+  }),
+
+  resendOtp: asyncHandler(async (req: Request, res: Response) => {
+    const result = await authService.resendVerificationOtp(req.body?.email ?? "");
+    res.json(createApiResponse(true, result.message, result));
   }),
 };
 

@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   Lock,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Route } from "next";
@@ -19,6 +20,7 @@ import { authApi } from "@/services/auth";
 import { tokenStore } from "@/services/token-storage";
 import { useAppDispatch } from "@/store";
 import { setCredentials } from "@/store/slices/auth-slice";
+import { isAxiosError } from "@/utils/errors";
 
 type RoleType = "CITIZEN" | "OFFICER" | "DEPARTMENT_HEAD" | "SUPER_ADMIN";
 
@@ -72,6 +74,15 @@ function LoginFormContent() {
   const [rememberMe, setRememberMe] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const passwordValid =
+    password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+
+  const CheckMark = ({ show }: { show: boolean }) =>
+    show ? (
+      <CheckCircle2 className="w-4 h-4 text-emerald-500 absolute right-3 top-3 pointer-events-none" />
+    ) : null;
+
   // Update default email when role changes
   const handleRoleSelect = (role: RoleType) => {
     setSelectedRole(role);
@@ -104,6 +115,16 @@ function LoginFormContent() {
       router.replace((next && next.startsWith("/") ? next : targetRoute) as Route);
       router.refresh();
     } catch (err) {
+      if (
+        isAxiosError(err) &&
+        err.response?.status === 403 &&
+        /not verified|verification/i.test(err.response.data?.message ?? "")
+      ) {
+        toast.error(err.response.data?.message ?? "Please verify your email first.");
+        const verifyUrl = `/auth/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}` as Route;
+        router.replace(verifyUrl);
+        return;
+      }
       toast.error("Failed to sign in. Please check your credentials.");
       console.error(err);
     } finally {
@@ -189,15 +210,18 @@ function LoginFormContent() {
                 <label htmlFor="email-input" className="text-xs font-semibold text-slate-700 block">
                   Email Address
                 </label>
-                <input
-                  id="email-input"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="head@publicworks.gov"
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    id="email-input"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="head@publicworks.gov"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 pr-9 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
+                    required
+                  />
+                  <CheckMark show={emailValid} />
+                </div>
               </div>
 
               {/* Password Input with eye toggle */}
@@ -215,6 +239,7 @@ function LoginFormContent() {
                     className="w-full bg-white border border-slate-300 rounded-xl pl-4 pr-11 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
                     required
                   />
+                  <CheckMark show={passwordValid} />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}

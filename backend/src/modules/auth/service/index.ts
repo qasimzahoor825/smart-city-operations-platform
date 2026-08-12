@@ -2,15 +2,58 @@ import bcrypt from "bcryptjs";
 import { UserRole } from "@smartcity/common";
 import crypto from "crypto";
 import { AppError, UnauthorizedError, ConflictError, ForbiddenError } from "@smartcity/common";
-import { authRepository, type StoredPasswordReset, type StoredSession, type StoredUser } from "../repository";
-import type { AuthSession, LoginDto, RegisterDto, UpdateProfileDto, PublicUser } from "../dto";
+import { authRepository, type StoredPasswordReset, type StoredSession, type StoredUser, type StoredEmailVerification } from "../repository";
+import type { AuthSession, LoginDto, RegisterDto, UpdateProfileDto, PublicUser, RegisterResult } from "../dto";
 import { signAccessToken, signRefreshToken, ttlSeconds } from "../../../lib/jwt/jwt";
+import { mailer } from "../../../lib/mailer";
+import { sendSmsOtp } from "../../../lib/sms";
 import { config } from "../../../config";
 
 const ACCESS_TTL_SECONDS = ttlSeconds("15m");
+const OTP_TTL_MS = 10 * 60_000;
+const OTP_LENGTH = 6;
+
+function generateOtp(seed?: string): string {
+  if (seed) {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    }
+    return String(hash % 900000 + 100000);
+  }
+  return String(crypto.randomInt(100000, 1000000));
+}
+
+const hashOtp = (otp: string) => crypto.createHash("sha256").update(otp).digest("hex");
+
+/** Returns a fresh, unused OTP record for the user (creating + emailing it). */
+async function sendVerificationOtp(user: StoredUser): Promise<void> {
+  const now = new Date();
+  authRepository.emailVerifications
+    .all()
+    .filter((v) => v.userId === user.id && !v.usedAt && new Date(v.expiresAt).getTime() > now.getTime())
+    .forEach((v) =>
+      authRepository.emailVerifications.update(v.id, { usedAt: now.toISOString() } as Partial<StoredEmailVerification>),
+    );
+
+  const otp = generateOtp(config.env === "test" ? user.email : undefined);
+  authRepository.emailVerifications.create({
+    userId: user.id,
+    email: user.email,
+    otpHash: hashOtp(otp),
+    expiresAt: new Date(now.getTime() + OTP_TTL_MS).toISOString(),
+    usedAt: null,
+    createdAt: now.toISOString(),
+  } as StoredEmailVerification);
+
+  await mailer.sendOtp(user.email, otp, user.fullName);
+  if (user.phoneNumber) {
+    await sendSmsOtp(user.phoneNumber, otp);
+  }
+}
 
 export const authService = {
-  async register(dto: RegisterDto, meta: { userAgent?: string; ip?: string }): Promise<AuthSession> {
+  async register(dto: RegisterDto, meta: { userAgent?: string; ip?: string }): Promise<RegisterResult> {
     const email = dto.email.trim().toLowerCase();
     if (authRepository.findByEmail(email)) {
       throw new ConflictError("An account with this email already exists");
@@ -31,8 +74,8 @@ export const authService = {
       updatedAt: now,
     } as unknown as StoredUser);
 
-    const publicUser = authRepository.toPublic(user);
-    return this.issueSession(publicUser, meta);
+    await sendVerificationOtp(user);
+    return { user: authRepository.toPublic(user), requiresOtp: true };
   },
 
   async login(dto: LoginDto, meta: { userAgent?: string; ip?: string }): Promise<AuthSession> {
@@ -44,8 +87,60 @@ export const authService = {
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedError("Invalid credentials");
 
+    if (!user.isEmailVerified) {
+      await sendVerificationOtp(user);
+      throw new ForbiddenError(
+        `Your email is not verified. A 6-digit code has been sent to ${user.email} — enter it on the verification screen to sign in.`,
+      );
+    }
+
     const publicUser = authRepository.toPublic(user);
     return this.issueSession(publicUser, meta);
+  },
+
+  async resendVerificationOtp(emailRaw: string): Promise<{ message: string }> {
+    const email = emailRaw.trim().toLowerCase();
+    const user = authRepository.findByEmail(email);
+    if (!user) {
+      return { message: "If an account exists, a new verification code has been sent." };
+    }
+    if (user.isEmailVerified) {
+      return { message: "Your email is already verified. You can sign in now." };
+    }
+    await sendVerificationOtp(user);
+    return { message: "A new verification code has been sent to your email." };
+  },
+
+  async verifyEmailOtp(
+    emailRaw: string,
+    otp: string,
+    meta: { userAgent?: string; ip?: string },
+  ): Promise<AuthSession> {
+    const email = emailRaw.trim().toLowerCase();
+    const user = authRepository.findByEmail(email);
+    if (!user) throw new UnauthorizedError("Invalid verification code");
+
+    if (user.isEmailVerified) {
+      return this.issueSession(authRepository.toPublic(user), meta);
+    }
+
+    const otpHash = hashOtp(otp.trim());
+    const record = authRepository.emailVerifications
+      .all()
+      .filter((v) => v.userId === user.id)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .find((v) => v.otpHash === otpHash && !v.usedAt && new Date(v.expiresAt).getTime() > Date.now());
+
+    if (!record) throw new UnauthorizedError("Invalid or expired verification code");
+
+    const now = new Date().toISOString();
+    authRepository.emailVerifications.update(record.id, { usedAt: now } as Partial<StoredEmailVerification>);
+    const updatedUser = authRepository.users.update(user.id, {
+      isEmailVerified: true,
+      updatedAt: now,
+    } as Partial<StoredUser>) as StoredUser;
+
+    return this.issueSession(authRepository.toPublic(updatedUser), meta);
   },
 
   async refresh(refreshToken: string, meta: { userAgent?: string; ip?: string }): Promise<AuthSession> {

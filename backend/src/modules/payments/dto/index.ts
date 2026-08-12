@@ -4,6 +4,7 @@ export interface BillQuery {
   page?: number;
   limit?: number;
   userId?: string;
+  userName?: string;
   status?: string;
 }
 

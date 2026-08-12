@@ -13,6 +13,7 @@ export const paymentController = {
     const { page, limit } = paginationQuery(req);
     const query: BillQuery = { page, limit };
     if (typeof req.query.userId === "string") query.userId = req.query.userId;
+    if (req.user?.id) query.userName = req.user.email ? req.user.email.split("@")[0] : "Citizen";
     if (typeof req.query.status === "string") query.status = req.query.status;
     const { items, pagination } = await paymentService.listBills(query);
     res.json(createListResponse(items, pagination, "Bills fetched"));

@@ -10,12 +10,20 @@ export declare enum UserRole {
 }
 export declare enum ComplaintStatus {
     SUBMITTED = "SUBMITTED",
+    RECEIVED = "RECEIVED",
     ASSIGNED = "ASSIGNED",
+    UNDER_REVIEW = "UNDER_REVIEW",
+    FIELD_INSPECTION = "FIELD_INSPECTION",
     IN_PROGRESS = "IN_PROGRESS",
     RESOLVED = "RESOLVED",
+    CITIZEN_FEEDBACK = "CITIZEN_FEEDBACK",
     CLOSED = "CLOSED",
-    REJECTED = "REJECTED"
+    REJECTED = "REJECTED",
+    ESCALATED = "ESCALATED",
+    CANCELLED = "CANCELLED"
 }
+/** Ordered complaint lifecycle (primary happy path). */
+export declare const COMPLAINT_FLOW: ComplaintStatus[];
 export declare enum ComplaintPriority {
     LOW = "LOW",
     MEDIUM = "MEDIUM",
@@ -31,9 +39,11 @@ export declare enum EmergencyType {
 }
 export declare enum EmergencyStatus {
     REPORTED = "REPORTED",
+    ACKNOWLEDGED = "ACKNOWLEDGED",
     DISPATCHED = "DISPATCHED",
     ON_SCENE = "ON_SCENE",
-    RESOLVED = "RESOLVED"
+    RESOLVED = "RESOLVED",
+    CLOSED = "CLOSED"
 }
 export declare enum NotificationType {
     IN_APP = "IN_APP",
@@ -43,8 +53,13 @@ export declare enum NotificationType {
     SYSTEM = "SYSTEM"
 }
 export declare enum AssetStatus {
+    ACTIVE = "ACTIVE",
     OPERATIONAL = "OPERATIONAL",
+    MAINTENANCE = "MAINTENANCE",
     UNDER_MAINTENANCE = "UNDER_MAINTENANCE",
+    DAMAGED = "DAMAGED",
+    INACTIVE = "INACTIVE",
+    RETIRED = "RETIRED",
     OUT_OF_SERVICE = "OUT_OF_SERVICE"
 }
 export declare enum AssetCategory {

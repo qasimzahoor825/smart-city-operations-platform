@@ -15,6 +15,21 @@ export interface RegisterDto {
   departmentId?: string;
 }
 
+export interface VerifyEmailDto {
+  email: string;
+  otp: string;
+}
+
+export interface ResendOtpDto {
+  email: string;
+}
+
+/** Register response — account is created but requires OTP verification. */
+export interface RegisterResult {
+  user: PublicUser;
+  requiresOtp: boolean;
+}
+
 export interface RefreshDto {
   refreshToken: string;
 }

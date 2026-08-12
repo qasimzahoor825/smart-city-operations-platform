@@ -18,9 +18,6 @@ import {
   MapPin,
   Cross,
   Shield,
-  Train,
-  Trees,
-  Layers,
   ArrowRight,
   Sparkles,
   Activity,
@@ -155,7 +152,6 @@ export default function SmartCityHomePage() {
   }, [refreshLiveStats]);
 
   const marqueeServices = [
-    "Report an Issue",
     "Utility Bill Payments",
     "Book Appointments",
     "Trade Licenses",
@@ -165,6 +161,7 @@ export default function SmartCityHomePage() {
     "IoT Sensors",
     "Digital Hospital",
     "Waste Management",
+    "Report an Issue",
   ];
 
   const pillars = [
@@ -315,7 +312,7 @@ export default function SmartCityHomePage() {
 
                 <Reveal delay={0.18}>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <HeroStat icon={<Megaphone className="w-4 h-4 text-sky-600" />} value={live.complaints} label="Live Complaints" accent="bg-sky-500/10" />
+                    <HeroStat icon={<Megaphone className="w-4 h-4 text-sky-600" />} value={live.complaints} label="Complaints" accent="bg-sky-500/10" />
                     <HeroStat icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} value={live.resolved} label="Resolved" accent="bg-emerald-500/10" />
                     <HeroStat icon={<Landmark className="w-4 h-4 text-violet-600" />} value={live.departments} label="Departments" accent="bg-violet-500/10" />
                     <HeroStat icon={<Users className="w-4 h-4 text-amber-600" />} value={live.officers} label="Officers" accent="bg-amber-500/10" />
@@ -385,7 +382,8 @@ export default function SmartCityHomePage() {
                           </div>
                           <p className="text-sm font-bold text-teal-700">{live.complaints.toLocaleString()} active signals</p>
                         </motion.div>
-                        <motion.div animate={{ y: [0, 7, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="bg-white/90 backdrop-blur border border-slate-200 rounded-xl p-3 shadow-lg">
+
+                        <motion.div animate={{ y: [0, 7, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="relative bg-white/90 backdrop-blur border border-slate-200 rounded-xl p-3 shadow-lg">
                           <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
                             <span>IoT Water Sensors</span>
                             <span className="w-2 h-2 rounded-full bg-sky-500" />
@@ -393,26 +391,10 @@ export default function SmartCityHomePage() {
                           <p className="text-sm font-bold text-sky-700">{live.departments.toLocaleString()} zones online</p>
                         </motion.div>
                       </div>
-
-                      {/* Bottom badges */}
-                      <div className="absolute inset-x-0 bottom-0 p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[11px] font-semibold text-slate-800 shadow-sm">
-                          <Train className="w-3.5 h-3.5 text-cyan-600" /> Smart Transit
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[11px] font-semibold text-slate-800 shadow-sm flex items-center gap-1.5">
-                            <Trees className="w-3.5 h-3.5 text-emerald-600" /> Parks
-                          </div>
-                          <div className="bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[11px] font-semibold text-slate-800 shadow-sm flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-slate-700" /> Grid
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </motion.div>
 
-                {/* Floating radar chip */}
                 <div className="animate-float absolute -bottom-5 -left-6 hidden sm:flex items-center gap-2 bg-white rounded-2xl px-4 py-3 shadow-xl border border-slate-200">
                   <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-600">
                     <Radar className="w-4 h-4" />
@@ -430,17 +412,21 @@ export default function SmartCityHomePage() {
         </section>
 
         {/* ===================== MARQUEE TICKER ===================== */}
-        <section className="py-6 border-y border-slate-200/80 bg-white/70 backdrop-blur-md">
-          <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">
+        <section className="py-5 border-y border-slate-200/80 bg-white/70 backdrop-blur-md">
+          <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
             <div className="flex w-max animate-marquee gap-4 pr-4">
-              {[...marqueeServices, ...marqueeServices].map((name, idx) => (
-                <span
-                  key={`${name}-${idx}`}
-                  className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full"
-                >
-                  <Zap className="w-3.5 h-3.5 text-teal-600" />
-                  {name}
-                </span>
+              {[marqueeServices, marqueeServices].map((set, setIndex) => (
+                <ul key={setIndex} aria-hidden={setIndex === 1} className="flex shrink-0 items-center gap-4">
+                  {set.map((name) => (
+                    <li
+                      key={`${setIndex}-${name}`}
+                      className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full whitespace-nowrap"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-teal-600" />
+                      {name}
+                    </li>
+                  ))}
+                </ul>
               ))}
             </div>
           </div>

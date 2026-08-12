@@ -16,6 +16,8 @@ export default function CitizenPaymentsPage() {
   const [summary, setSummary] = React.useState({ totalPaid: 0, count: 0, currency: "USD" });
   const [loading, setLoading] = React.useState(true);
 
+  const billDue = (b: Bill) => b.dueAt ?? b.dueDate;
+
   const refresh = React.useCallback(() => {
     setLoading(true);
     Promise.all([
@@ -38,13 +40,7 @@ export default function CitizenPaymentsPage() {
 
   const onPay = async (bill: Bill) => {
     try {
-      await paymentsApi.pay({
-        userId: user?.id || "anonymous",
-        billType: bill.billType,
-        amount: bill.amount,
-        currency: bill.currency,
-        description: bill.description,
-      });
+      await paymentsApi.pay({ billId: bill.id, method: "card" });
       toast.success(`${bill.description || bill.billType} paid`);
       refresh();
     } catch {
@@ -107,7 +103,9 @@ export default function CitizenPaymentsPage() {
                     <div>
                       <div className="font-semibold text-white">{b.description || b.billType}</div>
                       <div className="text-xs text-slate-400">
-                        {b.billType} · Due {new Date(b.dueDate).toLocaleDateString()}
+                        {b.billType} · Due {billDue(b)
+                          ? new Date(billDue(b) as string).toLocaleDateString()
+                          : "Soon"}
                       </div>
                     </div>
                   </div>

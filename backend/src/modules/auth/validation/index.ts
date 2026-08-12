@@ -14,6 +14,15 @@ export const registerSchema = z.object({
   departmentId: z.string().optional(),
 });
 
+export const verifyEmailSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  otp: z.string().min(4, "OTP is required").regex(/^\d{4,8}$/, "OTP must be numeric"),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 export const refreshSchema = z.object({
   refreshToken: z.string().min(1, "refreshToken is required"),
 });

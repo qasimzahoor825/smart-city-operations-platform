@@ -10,7 +10,11 @@ export const registerSchema = z
   .object({
     fullName: z.string().min(2, "Full name is required").max(100, "Name is too long"),
     email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-    phoneNumber: z.string().optional(),
+    phoneNumber: z
+      .string()
+      .min(7, "Phone number is required for SMS OTP")
+      .regex(/^\+?[\d\s\-()]{7,15}$/, "Enter a valid phone number"),
+    role: z.enum(["CITIZEN", "OFFICER", "DEPARTMENT_HEAD", "SUPER_ADMIN"]).default("CITIZEN"),
     password: z
       .string()
       .min(1, "Password is required")
@@ -23,6 +27,15 @@ export const registerSchema = z
     path: ["confirmPassword"],
     message: "Passwords do not match",
   });
+
+export const verifyOtpSchema = z.object({
+  otp: z
+    .string()
+    .min(1, "Enter the verification code")
+    .regex(/^\d{4,8}$/, "Code must be 4-8 digits"),
+});
+
+export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),

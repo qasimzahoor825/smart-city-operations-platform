@@ -6,21 +6,28 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Cpu, User, Mail, Phone, Lock, ArrowRight } from "lucide-react";
+import { Cpu, User, Mail, Phone, Lock, ArrowRight, Shield, Building2, KeyRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { registerSchema, type RegisterFormValues } from "@/schemas/auth";
 import { authApi } from "@/services/auth";
-import { tokenStore } from "@/services/token-storage";
-import { useAppDispatch } from "@/store";
-import { setCredentials } from "@/store/slices/auth-slice";
 import { extractErrorMessage } from "@/utils/errors";
+import type { Role } from "@/types";
+
+const ROLE_OPTIONS: { value: Role; label: string; icon: LucideIcon; hint: string }[] = [
+  { value: "CITIZEN", label: "Citizen", icon: User, hint: "Public services" },
+  { value: "OFFICER", label: "Officer", icon: Shield, hint: "Field officer" },
+  { value: "DEPARTMENT_HEAD", label: "Dept. Head", icon: Building2, hint: "Operations" },
+  { value: "SUPER_ADMIN", label: "Super Admin", icon: KeyRound, hint: "Full control" },
+];
 
 export default function RegisterPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -28,23 +35,27 @@ export default function RegisterPage() {
       fullName: "",
       email: "",
       phoneNumber: "",
+      role: "CITIZEN",
       password: "",
       confirmPassword: "",
     },
   });
 
+  const selectedRole = watch("role");
+
   const onSubmit = async (values: RegisterFormValues) => {
     try {
-      const session = await authApi.register({
+      await authApi.register({
         fullName: values.fullName,
         email: values.email,
         password: values.password,
         phoneNumber: values.phoneNumber,
+        role: values.role,
       });
-      tokenStore.setTokens(session.accessToken, session.refreshToken);
-      dispatch(setCredentials({ user: session.user, accessToken: session.accessToken }));
-      toast.success("Account created. Welcome to SmartCity OS!");
-      router.replace("/citizen/dashboard");
+      toast.success("Account created! Enter the code sent to your email.");
+      router.replace(
+        `/auth/verify-email?email=${encodeURIComponent(values.email.toLowerCase())}`,
+      );
       router.refresh();
     } catch (err) {
       toast.error(extractErrorMessage(err));
@@ -62,13 +73,46 @@ export default function RegisterPage() {
           <div className="p-3 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white w-fit mx-auto shadow-lg shadow-blue-500/30">
             <Cpu className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Create Resident Account</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Create Your Account</h1>
           <p className="text-xs text-slate-500">
-            Join the digital municipal network for instant city services
+            Join the digital municipal network — OTP code email aur SMS dono par aayega
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          {/* Role Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-600 block">Account Role</label>
+              {fieldError("role")}
+            </div>
+            <input type="hidden" {...register("role")} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {ROLE_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const isSelected = selectedRole === opt.value;
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setValue("role", opt.value, { shouldValidate: true })}
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${
+                      isSelected
+                        ? "border-sky-600 bg-sky-50 text-sky-800 ring-2 ring-sky-600/30 shadow-sm"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 mb-1 ${isSelected ? "text-sky-700" : "text-slate-500"}`} />
+                    <span className="text-[11px] font-bold leading-tight">{opt.label}</span>
+                    <span className={`text-[9px] ${isSelected ? "text-sky-600" : "text-slate-400"}`}>
+                      {opt.hint}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-slate-600 block">Full Legal Name</label>
             {fieldError("fullName")}
@@ -100,12 +144,15 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 block mb-1">Phone (optional)</label>
+            <label className="text-xs font-semibold text-slate-600 block mb-1">
+              Phone Number <span className="text-emerald-600">(OTP yahan SMS se bhi aayega)</span>
+            </label>
+            {errors.phoneNumber && <span className="text-xs text-red-500">{errors.phoneNumber.message}</span>}
             <div className="relative">
               <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="tel"
-                placeholder="+1 555 123 4567"
+                placeholder="+92 300 1234567"
                 autoComplete="tel"
                 {...register("phoneNumber")}
                 className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
@@ -154,7 +201,7 @@ export default function RegisterPage() {
               <span className="animate-spin border-2 border-white/40 border-t-white rounded-full w-4 h-4" />
             ) : (
               <>
-                <span>Complete Registration</span>
+                <span>Create Account</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

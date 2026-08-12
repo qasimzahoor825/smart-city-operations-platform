@@ -35,7 +35,7 @@ const navItems = [
   { label: "Assets", href: "/admin/assets", icon: BriefcaseBusiness },
   { label: "Emergency", href: "/admin/emergency", icon: Siren },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { label: "GIS", href: "/department/gis", icon: Globe2 },
+  { label: "GIS Portal", href: "/admin/gis", icon: Globe2 },
   { label: "Workflows", href: "/admin/reports", icon: GitBranch },
   { label: "Notifications", href: "/department/notifications", icon: Bell },
   { label: "Audit Logs", href: "/admin/reports", icon: FileClock },
@@ -58,6 +58,7 @@ const formatNumber = (value: number): string => value.toLocaleString("en-US");
 export default function AdminDashboardPage() {
   const [range, setRange] = React.useState("Last 30 days");
   const [loading, setLoading] = React.useState(true);
+  const firstLoad = React.useRef(true);
   const [kpis, setKpis] = React.useState({ citizens: 0, officers: 0, departments: 0, complaints: 0, assets: 0, emergenciesActive: 0 });
   const [complaintStats, setComplaintStats] = React.useState<Record<string, number>>({});
   const [resolutionRate, setResolutionRate] = React.useState(0);
@@ -72,7 +73,7 @@ export default function AdminDashboardPage() {
   ]);
 
   const refresh = React.useCallback(async () => {
-    setLoading(true);
+    if (firstLoad.current) setLoading(true);
     const healthMap: Record<string, { ok: boolean }> = {
       api: { ok: false },
       database: { ok: false },
@@ -209,13 +210,14 @@ export default function AdminDashboardPage() {
       console.error(error);
       toast.error("Could not load dashboard data");
     } finally {
+      firstLoad.current = false;
       setLoading(false);
     }
   }, []);
 
   React.useEffect(() => {
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 15000);
+    const timer = window.setInterval(() => void refresh(), 30000);
     return () => window.clearInterval(timer);
   }, [refresh]);
 

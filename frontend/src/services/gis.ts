@@ -16,21 +16,21 @@ export interface MarkerStats {
 
 export const gisApi = {
   async layers(): Promise<GisLayer[]> {
-    const { data } = await api.get<ApiResponse<GisLayer[]>>("/layers");
+    const { data } = await api.get<ApiResponse<GisLayer[]>>("/gis/layers");
     return data.data ?? [];
   },
   async markers(type?: string, status?: string): Promise<MapMarker[]> {
-    const { data } = await api.get<ApiResponse<MapMarker[]>>("/markers", {
+    const { data } = await api.get<ApiResponse<MapMarker[]>>("/gis/markers", {
       params: { type: type || undefined, status: status || undefined, limit: 1000 },
     });
     return data.data ?? [];
   },
   async stats(): Promise<MarkerStats> {
-    const { data } = await api.get<ApiResponse<MarkerStats>>("/markers/stats");
+    const { data } = await api.get<ApiResponse<MarkerStats>>("/gis/markers/stats");
     return data.data as MarkerStats;
   },
   async search(q: string): Promise<MapMarker[]> {
-    const { data } = await api.get<ApiResponse<MapMarker[]>>("/search", { params: { q } });
+    const { data } = await api.get<ApiResponse<MapMarker[]>>("/gis/search", { params: { q } });
     return data.data ?? [];
   },
 };

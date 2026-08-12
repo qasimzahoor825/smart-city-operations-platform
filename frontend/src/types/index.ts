@@ -229,9 +229,10 @@ export interface Bill {
   billType: string;
   amount: number;
   currency: string;
-  status: "PENDING" | "PAID";
+  status: string;
   description: string;
-  dueDate: string;
+  dueAt?: string;
+  dueDate?: string;
   userId: string;
 }
 

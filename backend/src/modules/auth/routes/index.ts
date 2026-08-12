@@ -9,8 +9,10 @@ import {
   loginSchema,
   refreshSchema,
   registerSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
   updateProfileSchema,
+  verifyEmailSchema,
 } from "../validation";
 
 export const authRouter = Router();
@@ -21,7 +23,8 @@ authRouter.post("/refresh", authLimiter, validateBody(refreshSchema), authContro
 authRouter.post("/logout", authController.logout);
 authRouter.post("/forgot-password", authLimiter, validateBody(forgotPasswordSchema), authController.forgotPassword);
 authRouter.post("/reset-password", authLimiter, validateBody(resetPasswordSchema), authController.resetPassword);
-authRouter.post("/verify-email", authController.verifyEmail);
+authRouter.post("/verify-email", authLimiter, validateBody(verifyEmailSchema), authController.verifyEmail);
+authRouter.post("/resend-otp", authLimiter, validateBody(resendVerificationSchema), authController.resendOtp);
 
 authRouter.get("/me", requireAuth, authController.me);
 authRouter.patch("/me", requireAuth, validateBody(updateProfileSchema), authController.updateProfile);

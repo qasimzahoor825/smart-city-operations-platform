@@ -25,7 +25,55 @@ const BILL_STATUSES: BillStatus[] = ["PENDING", "PAID", "OVERDUE", "CANCELLED"];
 const PAYMENT_METHODS = ["card", "bank_transfer", "wallet", "cash"];
 
 export const paymentService = {
+  /**
+   * Seed a small set of realistic bills for any user that currently has none, so
+   * the payments page always has data to show regardless of which account logs in.
+   */
+  ensureDemoBills(userId: string, userName: string): void {
+    const existing = paymentRepository.bills.query({ filter: (b) => b.userId === userId });
+    if (existing.length > 0) return;
+
+    const now = new Date().toISOString();
+    const specs: { billType: string; description: string; amount: number; status: BillStatus; dueInDays: number }[] = [
+      { billType: "WATER", description: "Water & sanitation utilities", amount: 98.5, status: "PENDING", dueInDays: 5 },
+      { billType: "TAX", description: "Property tax — annual cycle", amount: 320.0, status: "PAID", dueInDays: -10 },
+      { billType: "SERVICE_FEE", description: "Service request processing fee", amount: 74.25, status: "OVERDUE", dueInDays: -2 },
+    ];
+
+    specs.forEach((spec) => {
+      const bill = paymentRepository.bills.create({
+        billRef: `BILL-${new Date().getFullYear()}-DEMO-${Math.floor(100 + Math.random() * 900)}`,
+        billType: spec.billType,
+        description: spec.description,
+        amount: spec.amount,
+        currency: "USD",
+        status: spec.status,
+        userId,
+        userName,
+        dueAt: new Date(Date.now() + spec.dueInDays * 86_400_000).toISOString(),
+        paidAt: spec.status === "PAID" ? now : null,
+        createdAt: now,
+      } as StoredBill);
+
+      if (spec.status === "PAID") {
+        paymentRepository.transactions.create({
+          transactionRef: generateRef("TXN"),
+          billId: bill.id,
+          userId,
+          userName,
+          amount: spec.amount,
+          currency: "USD",
+          status: "SUCCESS",
+          method: "card",
+          paidAt: now,
+          createdAt: now,
+        } as unknown as StoredTransaction);
+      }
+    });
+  },
+
   async listBills(query: BillQuery = {}): Promise<{ items: StoredBill[]; pagination: Pagination }> {
+    if (query.userId) this.ensureDemoBills(query.userId, query.userName ?? "Citizen");
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     if (query.status !== undefined && !(BILL_STATUSES as string[]).includes(query.status)) {

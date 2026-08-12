@@ -1,11 +1,13 @@
 import { authService } from "../service";
 import { authRepository, seedUsers } from "../repository";
 import { UserRole } from "@smartcity/common";
+import * as mailerModule from "../../../lib/mailer";
 
 describe("authService", () => {
   beforeEach(() => {
     authRepository.users.seed(seedUsers);
     authRepository.passwordResets.seed([]);
+    authRepository.emailVerifications.seed([]);
     // keep seed data but clear sessions between runs
     authRepository.sessions.seed([]);
   });
@@ -27,13 +29,63 @@ describe("authService", () => {
     expect(session.expiresIn).toBeGreaterThan(0);
   });
 
-  it("registers a new account and issues tokens", async () => {
-    const session = await authService.register(
-      { fullName: "Test Resident", email: "test@example.com", password: "Password123" },
-      {},
-    );
-    expect(session.user.email).toBe("test@example.com");
-    expect(authRepository.findByEmail("test@example.com")).toBeTruthy();
+  it("registers an account, then verifies it with the OTP", async () => {
+    const captured: { to: string; otp: string }[] = [];
+    const spy = jest
+      .spyOn(mailerModule.mailer, "sendOtp")
+      .mockImplementation(async (to: string, otp: string) => {
+        captured.push({ to, otp });
+        return {};
+      });
+    try {
+      const result = await authService.register(
+        { fullName: "Test Resident", email: "test@example.com", password: "Password123" },
+        {},
+      );
+      expect(result.user.email).toBe("test@example.com");
+      expect(result.requiresOtp).toBe(true);
+      expect(authRepository.findByEmail("test@example.com")).toBeTruthy();
+      expect(authRepository.findByEmail("test@example.com")?.isEmailVerified).toBe(false);
+      expect(captured.length).toBe(1);
+      expect(captured[0].to).toBe("test@example.com");
+
+      const session = await authService.verifyEmailOtp(
+        "test@example.com",
+        captured[0].otp,
+        {},
+      );
+      expect(session.accessToken).toBeTruthy();
+      expect(session.user.isEmailVerified).toBe(true);
+
+      await expect(
+        authService.login(
+          { email: "test@example.com", password: "Password123" },
+          {},
+        ),
+      ).resolves.toMatchObject({ user: { email: "test@example.com", isEmailVerified: true } });
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("does not log in an unverified account until it is verified", async () => {
+    const spy = jest
+      .spyOn(mailerModule.mailer, "sendOtp")
+      .mockImplementation(async () => ({}) as never);
+    try {
+      await authService.register(
+        { fullName: "Unverified", email: "unver@example.com", password: "Password123" },
+        {},
+      );
+      await expect(
+        authService.login(
+          { email: "unver@example.com", password: "Password123" },
+          {},
+        ),
+      ).rejects.toThrow("not verified");
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("does not allow duplicate registration", async () => {

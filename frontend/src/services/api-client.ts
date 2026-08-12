@@ -48,7 +48,11 @@ instance.interceptors.response.use(
   async (error: AxiosError<ApiErrorPayload>) => {
     const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && original && !original._retry) {
+    const headers = (original?.headers as Record<string, unknown> | undefined) ?? {};
+    const sentAuthHeader =
+      Boolean(headers.Authorization) || Boolean(headers.authorization) || Boolean(headers["AUTHORIZATION"]);
+
+    if (error.response?.status === 401 && sentAuthHeader && original && !original._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

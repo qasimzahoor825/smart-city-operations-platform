@@ -1,5 +1,5 @@
 import api from "@/services/api-client";
-import type { ApiResponse, AuthSession, AuthUser } from "@/types";
+import type { ApiResponse, AuthSession, AuthUser, Role } from "@/types";
 
 export interface PermissionClaim {
   resource: string;
@@ -20,6 +20,12 @@ export interface RegisterPayload {
   email: string;
   password: string;
   phoneNumber?: string;
+  role?: Role;
+}
+
+export interface RegisterResult {
+  user: AuthUser;
+  requiresOtp: boolean;
 }
 
 export interface LoginPayload {
@@ -34,9 +40,19 @@ export const authApi = {
     return data.data as AuthSession;
   },
 
-  async register(payload: RegisterPayload): Promise<AuthSession> {
-    const { data } = await api.post<ApiResponse<AuthSession>>("/auth/register", payload);
+  async register(payload: RegisterPayload): Promise<RegisterResult> {
+    const { data } = await api.post<ApiResponse<RegisterResult>>("/auth/register", payload);
+    return data.data as RegisterResult;
+  },
+
+  async verifyOtp(email: string, otp: string): Promise<AuthSession> {
+    const { data } = await api.post<ApiResponse<AuthSession>>("/auth/verify-email", { email, otp });
     return data.data as AuthSession;
+  },
+
+  async resendOtp(email: string): Promise<{ message: string }> {
+    const { data } = await api.post<ApiResponse<{ message: string }>>("/auth/resend-otp", { email });
+    return data.data as { message: string };
   },
 
   async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
@@ -75,10 +91,6 @@ export const authApi = {
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
     await api.post("/auth/change-password", { currentPassword, newPassword });
-  },
-
-  async verifyEmail(token: string): Promise<void> {
-    await api.post("/auth/verify-email", { token });
   },
 
   async listSessions(): Promise<unknown[]> {
