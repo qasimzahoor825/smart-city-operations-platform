@@ -27,6 +27,9 @@ function requireDepartmentScope(req: Request, _res: Response, next: NextFunction
 
 export const departmentRouter = Router();
 
+// Public feed — sanitized department list, no authentication required.
+departmentRouter.get("/public", departmentController.publicList);
+
 departmentRouter.get("/", requireAuth, departmentController.list);
 departmentRouter.get("/:id", requireAuth, validateParams(departmentIdParamSchema) as RequestHandler, departmentController.get);
 departmentRouter.get(

@@ -171,7 +171,6 @@ export const assetService = {
   },
 
   async remove(id: string, actor: Actor): Promise<void> {
-    const asset = await this.getById(id);
     assertCanManageAsset(actor);
     assetRepository.assets.delete(id);
     assetRepository.inspections
@@ -188,7 +187,6 @@ export const assetService = {
   },
 
   async createInspection(assetId: string, actor: Actor, dto: CreateInspectionDto): Promise<StoredAssetInspection> {
-    const asset = await this.getById(assetId);
     assertCanManageAsset(actor);
     if (!dto.status || !dto.status.trim()) throw new ValidationError({ status: "status is required" });
     if (!dto.findings || !dto.findings.trim()) throw new ValidationError({ findings: "findings is required" });

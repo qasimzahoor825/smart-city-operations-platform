@@ -1,4 +1,4 @@
-import type { StoredBill, StoredTransaction } from "../repository";
+import type { StoredBill } from "../repository";
 
 export interface BillQuery {
   page?: number;

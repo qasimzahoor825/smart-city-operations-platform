@@ -2,6 +2,7 @@
 
 import React, { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   User,
@@ -102,7 +103,7 @@ function LoginFormContent() {
 
       toast.success(`Signed in as ${ROLE_CONFIGS[selectedRole].label}`);
 
-      const next = searchParams.get("next");
+      const next = searchParams?.get("next");
       const targetRoute =
         selectedRole === "SUPER_ADMIN"
           ? "/admin/dashboard"
@@ -146,11 +147,13 @@ function LoginFormContent() {
         
         {/* Left Column: Smart city image like the reference login screen */}
         <div className="lg:col-span-6 relative min-h-[420px] overflow-hidden rounded-3xl border border-emerald-100 bg-emerald-50 shadow-sm">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/services.jpg"
             alt="Illustrated smart city with transit, government buildings, solar roofs, and connected streets"
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            priority
+            className="object-cover"
           />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent p-6">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">

@@ -11,13 +11,13 @@ const STAT_META: { key: keyof PublicOverview; label: string }[] = [
   { key: "assets", label: "City Assets Registered" },
 ];
 
-// Render on the server per request so live platform stats are always fresh.
-export const dynamic = "force-dynamic";
+// Render on the server with 60s ISR revalidation so live stats stay fresh but pages are cached.
+export const revalidate = 60;
 
 export default async function AboutPage() {
   const [overview, departments] = await Promise.all([
-    publicGet<PublicOverview>("/reports/overview"),
-    publicGet<Department[]>("/departments"),
+    publicGet<PublicOverview>("/reports/public/overview"),
+    publicGet<Department[]>("/departments/public"),
   ]);
 
   return (

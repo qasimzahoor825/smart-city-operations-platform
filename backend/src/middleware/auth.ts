@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { UnauthorizedError, ForbiddenError } from "../core/errors";
 import { UserRole } from "@smartcity/common";
-import type { JwtPayload } from "../lib/jwt";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

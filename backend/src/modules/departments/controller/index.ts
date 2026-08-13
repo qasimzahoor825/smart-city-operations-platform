@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { departmentService } from "../service";
-import { asyncHandler, createApiResponse } from "../../../core/utils";
+import { asyncHandler, createApiResponse, createListResponse } from "../../../core/utils";
 import { paginatedResponse, paginationQuery } from "../../../middleware/paginate";
 
 const firstString = (value: unknown): string | undefined =>
@@ -15,6 +15,13 @@ export const departmentController = {
       search: firstString(req.query.search),
     });
     paginatedResponse(res, result.items, { page, limit }, "Departments fetched");
+  }),
+
+  /** Public feed: sanitized department summaries, no authentication. */
+  publicList: asyncHandler(async (req: Request, res: Response) => {
+    const { page, limit } = paginationQuery(req);
+    const result = await departmentService.listPublic({ page, limit });
+    res.json(createListResponse(result.items, result.pagination, "Departments fetched"));
   }),
 
   get: asyncHandler(async (req: Request, res: Response) => {

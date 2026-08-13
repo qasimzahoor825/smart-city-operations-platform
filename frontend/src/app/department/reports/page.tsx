@@ -11,6 +11,11 @@ import { toast } from "sonner";
 import type { Asset, Department } from "@/types";
 
 export default function DepartmentReportsPage() {
+  const [today, setToday] = React.useState<string>("");
+  React.useEffect(() => {
+    setToday(new Date().toLocaleDateString());
+  }, []);
+
   const overview = useAsync(() => reportsApi.overview(), {
     departments: 0,
     officers: 0,
@@ -108,7 +113,7 @@ export default function DepartmentReportsPage() {
               <FileText className="w-5 h-5 text-indigo-600 mt-0.5" />
               <div>
                 <div className="font-semibold text-slate-900 text-sm">
-                  City Operations Summary · {new Date().toLocaleDateString()}
+                  City Operations Summary · {today || "today"}
                 </div>
                 <p className="text-xs text-slate-500">
                   {departments.length} departments · {assets.length} assets · {complaints.length} complaints on file

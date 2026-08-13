@@ -8,7 +8,7 @@ import { Cpu, ShieldCheck, Heart, Radio } from "lucide-react";
 const SELF_CHROME_ROUTES = ["/login", "/register", "/citizen", "/department", "/admin", "/officer"];
 
 export function Footer() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const [year, setYear] = React.useState(2026);
 
   React.useEffect(() => {

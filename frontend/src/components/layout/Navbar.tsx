@@ -14,7 +14,7 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (SELF_CHROME_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {

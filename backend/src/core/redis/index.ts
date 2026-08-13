@@ -1,7 +1,6 @@
 import { EventEmitter } from "node:events";
 import Redis from "ioredis";
 import { config } from "../../config";
-import { logger } from "../logger";
 
 type Channel = "cache" | "queue" | "default";
 

@@ -6,6 +6,9 @@ import { exportReportQuerySchema } from "../validation";
 
 export const reportRouter = Router();
 
+// Public feed — aggregate platform counts only, no authentication required.
+reportRouter.get("/public/overview", reportController.overview);
+
 reportRouter.use(requireAuth);
 
 reportRouter.get("/overview", reportController.overview);

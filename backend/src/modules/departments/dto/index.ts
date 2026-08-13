@@ -20,6 +20,15 @@ export interface DepartmentDto {
   updatedAt: string;
 }
 
+/** Public-safe department summary — no member/officer emails exposed. */
+export interface PublicDepartmentDto {
+  id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  createdAt: string;
+}
+
 export interface DepartmentStats {
   departmentId: string;
   departmentName: string;

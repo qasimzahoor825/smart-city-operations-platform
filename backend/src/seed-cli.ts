@@ -14,7 +14,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { registerModels } from "./models";
 import { config } from "./config";
 import { modelFor } from "./core/database/repository";
 import {

@@ -34,40 +34,12 @@ const RESOLVED_STATUSES: string[] = [
 const REVIEW_STATUSES: string[] = [ComplaintStatus.RECEIVED, ComplaintStatus.UNDER_REVIEW];
 const INSPECTION_STATUSES: string[] = [ComplaintStatus.FIELD_INSPECTION];
 
-interface PlainComplaint {
-  id: string;
-  status: string;
-  priority: string;
-  category: string;
-  departmentId?: string | null;
-  departmentName?: string | null;
-  citizenName?: string | null;
-  slaBreached?: boolean;
-  slaHours?: number;
-  slaDeadline?: string | null;
-  resolvedAt?: string | null;
-  createdAt: string;
-}
-interface PlainAsset {
-  id: string;
-  status?: string;
-  category?: string;
-  department?: string | null;
-}
-interface PlainFeedback {
-  id: string;
-  complaintId: string;
-  rating: number;
-  comment: string | null;
-  createdAt: string;
-}
 interface PlainServiceRequest {
   id: string;
   status: string;
 }
 
 const serviceRequests = collection<PlainServiceRequest>("service_requests");
-const feedbackColl = collection<PlainFeedback>("feedback");
 
 function isDb(): boolean {
   return mongoState() === "connected";

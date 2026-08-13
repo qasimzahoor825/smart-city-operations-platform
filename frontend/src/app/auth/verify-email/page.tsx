@@ -20,7 +20,7 @@ function VerifyEmailInner() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const params = useSearchParams();
-  const emailParam = params.get("email") ?? "";
+  const emailParam = params?.get("email") ?? "";
 
   const [email, setEmail] = React.useState(emailParam ? decodeURIComponent(emailParam) : "");
   const [otp, setOtp] = React.useState("");

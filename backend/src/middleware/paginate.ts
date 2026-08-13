@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import { AppError } from "@smartcity/common";
 
 export function paginationQuery(req: Request): { page: number; limit: number } {
   const page = Math.max(1, Number(req.query.page) || 1);

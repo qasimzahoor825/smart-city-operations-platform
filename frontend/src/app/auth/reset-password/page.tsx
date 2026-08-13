@@ -15,7 +15,7 @@ import { extractErrorMessage } from "@/utils/errors";
 function ResetForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const token = searchParams?.get("token") || "";
 
   const {
     register,

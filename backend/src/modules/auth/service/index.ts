@@ -9,9 +9,7 @@ import { mailer } from "../../../lib/mailer";
 import { sendSmsOtp } from "../../../lib/sms";
 import { config } from "../../../config";
 
-const ACCESS_TTL_SECONDS = ttlSeconds("15m");
 const OTP_TTL_MS = 10 * 60_000;
-const OTP_LENGTH = 6;
 
 function generateOtp(seed?: string): string {
   if (seed) {
@@ -53,7 +51,7 @@ async function sendVerificationOtp(user: StoredUser): Promise<void> {
 }
 
 export const authService = {
-  async register(dto: RegisterDto, meta: { userAgent?: string; ip?: string }): Promise<RegisterResult> {
+  async register(dto: RegisterDto, _meta: { userAgent?: string; ip?: string }): Promise<RegisterResult> {
     const email = dto.email.trim().toLowerCase();
     if (authRepository.findByEmail(email)) {
       throw new ConflictError("An account with this email already exists");

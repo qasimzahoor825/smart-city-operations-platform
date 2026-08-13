@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   motion,
   animate,
@@ -147,7 +148,9 @@ export default function SmartCityHomePage() {
 
   React.useEffect(() => {
     refreshLiveStats();
-    const id = setInterval(refreshLiveStats, 20000);
+    const id = setInterval(() => {
+      if (!document.hidden) refreshLiveStats();
+    }, 60000);
     return () => clearInterval(id);
   }, [refreshLiveStats]);
 
@@ -352,11 +355,13 @@ export default function SmartCityHomePage() {
                 >
                   <div className="tilt-3d relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
                     <div className="relative aspect-[16/11] bg-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src="/hero.jpg"
                         alt="Connected smart city skyline with transport, parks, hospitals, and digital services"
-                        className="absolute inset-0 h-full w-full object-cover"
+                        fill
+                        priority
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                        className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/50 via-transparent to-white/20" />
                       <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#0891b2_1px,transparent_1px)] [background-size:16px_16px]" />

@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { authService } from "../service";
 import { asyncHandler, createApiResponse } from "../../../core/utils";
-import { AppError } from "@smartcity/common";
 import { auditService } from "../../audit/service";
 
 const sessionContext = (req: Request) => ({

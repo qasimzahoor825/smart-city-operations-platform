@@ -3,11 +3,11 @@ import { Mail, MapPin } from "lucide-react";
 import { publicGet } from "@/services/public-api";
 import type { Department } from "@/types";
 
-// Render on the server per request so live department contacts are always fresh.
-export const dynamic = "force-dynamic";
+// Render on the server with 60s ISR revalidation so department contacts stay fresh but pages are cached.
+export const revalidate = 60;
 
 export default async function ContactPage() {
-  const departments = (await publicGet<Department[]>("/departments")) ?? [];
+  const departments = (await publicGet<Department[]>("/departments/public")) ?? [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">

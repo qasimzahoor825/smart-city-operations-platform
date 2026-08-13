@@ -1,8 +1,8 @@
 import React from "react";
 import { publicGet, type PublicNewsArticle } from "@/services/public-api";
 
-// Render on the server per request so live announaints are always fresh.
-export const dynamic = "force-dynamic";
+// Render on the server with 60s ISR revalidation so announcements stay fresh but pages are cached.
+export const revalidate = 60;
 
 export default async function NewsPage() {
   const articles = (await publicGet<PublicNewsArticle[]>("/news/public")) ?? [];

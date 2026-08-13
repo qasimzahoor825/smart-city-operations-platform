@@ -1,4 +1,5 @@
 import { AppError, ConflictError, uid } from "@smartcity/common";
+import type { Pagination } from "@smartcity/common";
 import { paginate } from "../../../core/utils";
 import { departmentRepository, type DepartmentRecord } from "../repository";
 import type {
@@ -8,6 +9,7 @@ import type {
   DepartmentStats,
   ListDepartmentsOptions,
   PaginatedDepartments,
+  PublicDepartmentDto,
   UpdateDepartmentDto,
 } from "../dto";
 
@@ -27,6 +29,16 @@ export const departmentService = {
       );
     }
     return paginate(departments, page, limit);
+  },
+
+  /** Public feed: name/code/description only — no member emails, no auth required. */
+  async listPublic(options: ListDepartmentsOptions = {}): Promise<{ items: PublicDepartmentDto[]; pagination: Pagination }> {
+    const { page = 1, limit = 50 } = options;
+    const items: PublicDepartmentDto[] = departmentRepository.departments
+      .all()
+      .map((d) => this.toPublicDto(d))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return paginate(items, page, limit);
   },
 
   async getById(id: string): Promise<DepartmentDto> {
@@ -150,6 +162,16 @@ export const departmentService = {
       members: department.members,
       createdAt: department.createdAt,
       updatedAt: department.updatedAt,
+    };
+  },
+
+  toPublicDto(department: DepartmentRecord): PublicDepartmentDto {
+    return {
+      id: department.id,
+      name: department.name,
+      code: department.code,
+      description: department.description ?? null,
+      createdAt: department.createdAt,
     };
   },
 };

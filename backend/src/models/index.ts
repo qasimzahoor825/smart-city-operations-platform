@@ -19,7 +19,7 @@ import {
   AssetCategory,
 } from "@smartcity/common";
 
-function keep<T>(name: string, schema: Schema): void {
+function keep(name: string, schema: Schema): void {
   if (!models[name]) mongooseModel(name, schema);
 }
 
@@ -37,11 +37,11 @@ export const userSchema = new Schema<any>(
   {
     id: indexedString({ required: true, unique: true }),
     fullName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     phoneNumber: { type: String, default: null },
-    role: { type: String, enum: Object.values(UserRole), default: UserRole.CITIZEN, index: true },
-    departmentId: { type: String, default: null, index: true },
+    role: { type: String, enum: Object.values(UserRole), default: UserRole.CITIZEN },
+    departmentId: { type: String, default: null },
     avatar: { type: String, default: null },
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true, index: true },
@@ -49,7 +49,6 @@ export const userSchema = new Schema<any>(
   },
   { collection: "users", timestamps: true, minimize: false, strict: false },
 );
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 userSchema.index({ departmentId: 1 });
 
@@ -60,7 +59,7 @@ export const sessionSchema = new Schema<any>(
     refreshToken: { type: String, required: true, index: true },
     userAgent: { type: String, default: null },
     ip: { type: String, default: null },
-    expiresAt: { type: String, required: true, index: true },
+    expiresAt: { type: String, required: true },
   },
   { collection: "auth_sessions", strict: false, minimize: false, versionKey: false },
 );
@@ -71,7 +70,7 @@ export const passwordResetSchema = new Schema<any>(
     id: indexedString({ required: true, unique: true }),
     userId: indexedString({ required: true }),
     tokenHash: { type: String, required: true },
-    expiresAt: { type: String, required: true, index: true },
+    expiresAt: { type: String, required: true },
     usedAt: { type: String, default: null },
   },
   { collection: "password_resets", timestamps: true, minimize: false, strict: false },
@@ -92,7 +91,6 @@ export const complaintSchema = new Schema<any>(
       type: String,
       enum: Object.values(ComplaintStatus),
       default: ComplaintStatus.SUBMITTED,
-      index: true,
     },
     priority: { type: String, enum: Object.values(ComplaintPriority), index: true },
     latitude: { type: Number, default: null },
@@ -174,13 +172,13 @@ export const assetSchema = new Schema<any>(
     id: indexedString({ required: true, unique: true }),
     name: { type: String, required: true, index: true },
     category: { type: String, enum: Object.values(AssetCategory), index: true },
-    status: { type: String, enum: Object.values(AssetStatus), index: true },
+    status: { type: String, enum: Object.values(AssetStatus) },
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },
     address: { type: String, default: null },
     imageUrl: { type: String, default: null },
     location: { type: [Number], default: undefined },
-    department: indexedString(),
+    department: indexedString({ index: false }),
     lastInspectionAt: { type: String, default: null },
     nextInspectionAt: { type: String, default: null },
     maintainedBy: { type: String, default: null },
@@ -217,7 +215,7 @@ export const emergencySchema = new Schema<any>(
     title: { type: String, required: true },
     description: { type: String, required: true },
     severity: { type: String, enum: Object.values(ComplaintPriority), index: true },
-    status: { type: String, enum: Object.values(EmergencyStatus), index: true },
+    status: { type: String, enum: Object.values(EmergencyStatus) },
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },
     address: { type: String, default: null },
@@ -416,7 +414,7 @@ export const complaintCategorySchema = new Schema<any>(
 export const feedbackSchema = new Schema<any>(
   {
     id: indexedString({ required: true, unique: true }),
-    complaintId: { type: String, required: true, index: true },
+    complaintId: { type: String, required: true },
     citizenId: { type: String, required: true, index: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, default: null },

@@ -7,7 +7,9 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
-    domains: [process.env.NEXT_PUBLIC_IMAGE_DOMAIN ?? "res.cloudinary.com"],
+    remotePatterns: [
+      { protocol: "https", hostname: process.env.NEXT_PUBLIC_IMAGE_DOMAIN ?? "res.cloudinary.com" },
+    ],
     formats: ["image/avif", "image/webp"],
   },
   experimental: {
@@ -50,6 +52,19 @@ const nextConfig = {
         source: "/home",
         destination: "/",
         permanent: true,
+      },
+    ];
+  },
+  // Long-lived immutable caching for public static images (served via next/image →
+  // hashed/_next/image URLs) and short no-store for everything else, so the browser
+  // reuses optimized assets instead of re-downloading the 900KB hero on every visit.
+  async headers() {
+    return [
+      {
+        source: "/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|woff2)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
       },
     ];
   },

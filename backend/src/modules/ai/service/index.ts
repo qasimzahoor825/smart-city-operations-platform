@@ -79,7 +79,7 @@ function estimatePriority(title: string, description: string): AICategorization[
   return "MEDIUM";
 }
 
-function routeDepartment(category: string, text: string): AICategorization["departmentId"] | null {
+function routeDepartment(text: string): AICategorization["departmentId"] | null {
   const lower = text.toLowerCase();
   for (const route of DEPARTMENT_ROUTES) {
     if (route.keywords.some((k) => lower.includes(k))) return route.departmentId;
@@ -141,7 +141,7 @@ Description: ${dto.description}`;
     const priority = ["LOW", "MEDIUM", "HIGH", "CRITICAL"].includes(parsed.priority ?? "")
       ? (parsed.priority as AICategorization["priority"])
       : estimatePriority(dto.title, dto.description);
-    const departmentId = routeDepartment(`${dto.title} ${dto.description}`, `${dto.title}. ${dto.description}`);
+    const departmentId = routeDepartment(`${dto.title}. ${dto.description}`);
     return {
       category,
       priority,
@@ -163,7 +163,7 @@ export const aiService = {
     const text = `${dto.title}. ${dto.description}`;
     const category = guessCategory(text);
     const priority = estimatePriority(dto.title, dto.description);
-    const departmentId = routeDepartment(text, text);
+    const departmentId = routeDepartment(text);
     return {
       category,
       priority,
