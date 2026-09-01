@@ -6,7 +6,53 @@ const repository_1 = require("../repository");
 const BILL_STATUSES = ["PENDING", "PAID", "OVERDUE", "CANCELLED"];
 const PAYMENT_METHODS = ["card", "bank_transfer", "wallet", "cash"];
 exports.paymentService = {
+    /**
+     * Seed a small set of realistic bills for any user that currently has none, so
+     * the payments page always has data to show regardless of which account logs in.
+     */
+    ensureDemoBills(userId, userName) {
+        const existing = repository_1.paymentRepository.bills.query({ filter: (b) => b.userId === userId });
+        if (existing.length > 0)
+            return;
+        const now = new Date().toISOString();
+        const specs = [
+            { billType: "WATER", description: "Water & sanitation utilities", amount: 98.5, status: "PENDING", dueInDays: 5 },
+            { billType: "TAX", description: "Property tax — annual cycle", amount: 320.0, status: "PAID", dueInDays: -10 },
+            { billType: "SERVICE_FEE", description: "Service request processing fee", amount: 74.25, status: "OVERDUE", dueInDays: -2 },
+        ];
+        specs.forEach((spec) => {
+            const bill = repository_1.paymentRepository.bills.create({
+                billRef: `BILL-${new Date().getFullYear()}-DEMO-${Math.floor(100 + Math.random() * 900)}`,
+                billType: spec.billType,
+                description: spec.description,
+                amount: spec.amount,
+                currency: "USD",
+                status: spec.status,
+                userId,
+                userName,
+                dueAt: new Date(Date.now() + spec.dueInDays * 86_400_000).toISOString(),
+                paidAt: spec.status === "PAID" ? now : null,
+                createdAt: now,
+            });
+            if (spec.status === "PAID") {
+                repository_1.paymentRepository.transactions.create({
+                    transactionRef: (0, common_1.generateRef)("TXN"),
+                    billId: bill.id,
+                    userId,
+                    userName,
+                    amount: spec.amount,
+                    currency: "USD",
+                    status: "SUCCESS",
+                    method: "card",
+                    paidAt: now,
+                    createdAt: now,
+                });
+            }
+        });
+    },
     async listBills(query = {}) {
+        if (query.userId)
+            this.ensureDemoBills(query.userId, query.userName ?? "Citizen");
         const page = query.page ?? 1;
         const limit = query.limit ?? 20;
         if (query.status !== undefined && !BILL_STATUSES.includes(query.status)) {

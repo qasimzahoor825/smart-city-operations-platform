@@ -50,3 +50,57 @@
 {"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T22:46:44.668Z"}
 {"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-11T23:53:40.291Z"}
 {"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-11T23:53:40.543Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T14:59:35.983Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T14:59:36.958Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T15:21:33.858Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T15:21:34.018Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T15:31:35.722Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T15:33:11.969Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T15:33:12.131Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T16:04:11.355Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T16:04:11.518Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T16:09:23.808Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T16:09:24.033Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T16:12:08.406Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T16:12:08.582Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T16:25:17.909Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T16:25:18.126Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T16:40:55.574Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T16:40:55.727Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-16T20:38:10.112Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-16T20:38:10.721Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-19T13:41:18.418Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-19T13:41:19.116Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-30T12:41:35.352Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-30T12:41:35.544Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-31T23:02:24.246Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-31T23:02:24.277Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-31T23:02:24.855Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-31T23:08:37.467Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-31T23:08:37.620Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-31T23:16:15.985Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-31T23:16:16.137Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-08-31T23:28:23.530Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-08-31T23:28:23.690Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-09-01T00:07:58.760Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-09-01T00:07:58.937Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-09-01T00:13:08.791Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-09-01T00:13:08.952Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-09-01T00:16:33.855Z"}
+{"level":"info","message":"[bootstrap] provisioned 9 documents into 'departments'","timestamp":"2026-09-01T00:16:33.950Z"}
+{"level":"info","message":"[bootstrap] provisioned 4 documents into 'roles'","timestamp":"2026-09-01T00:16:33.976Z"}
+{"_message":"system_settings validation failed","errors":{"key":{"kind":"required","message":"Path `key` is required.","name":"ValidatorError","path":"key","properties":{"message":"Path `key` is required.","path":"key","type":"required"}}},"level":"error","message":"Failed to bootstrap monolith system_settings validation failed: key: Path `key` is required.","stack":"ValidationError: system_settings validation failed: key: Path `key` is required.\n    at model.validate (C:\\Users\\Lenovo\\Desktop\\enterprise-smart-city-platform\\node_modules\\mongoose\\lib\\document.js:2910:36)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Promise.all (index 0)\n    at async Function._insertMany (C:\\Users\\Lenovo\\Desktop\\enterprise-smart-city-platform\\node_modules\\mongoose\\lib\\model.js:3108:16)\n    at async insertIfEmpty (C:\\Users\\Lenovo\\Desktop\\enterprise-smart-city-platform\\backend\\src\\core\\seed\\bootstrap.ts:28:3)\n    at async bootstrapDatabase (C:\\Users\\Lenovo\\Desktop\\enterprise-smart-city-platform\\backend\\src\\core\\seed\\bootstrap.ts:37:3)\n    at async bootstrap (C:\\Users\\Lenovo\\Desktop\\enterprise-smart-city-platform\\backend\\src\\server\\index.ts:17:3)","timestamp":"2026-09-01T00:16:33.985Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-09-01T00:19:21.483Z"}
+{"level":"info","message":"[bootstrap] provisioned 1 documents into 'system_settings'","timestamp":"2026-09-01T00:19:21.618Z"}
+{"level":"info","message":"[bootstrap] provisioned 1 documents into 'system_metrics'","timestamp":"2026-09-01T00:19:21.629Z"}
+{"level":"info","message":"[bootstrap] provisioned 3 documents into 'gis_layers'","timestamp":"2026-09-01T00:19:21.635Z"}
+{"level":"info","message":"[sla] sweep complete: 0 breached, 1 escalated","timestamp":"2026-09-01T00:19:21.706Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-09-01T00:19:21.718Z"}
+{"level":"info","message":"MongoDB connected → mongodb://localhost:27017/enterprise-smart-city-platform","timestamp":"2026-09-01T00:21:09.038Z"}
+{"level":"info","message":"[bootstrap] provisioned 9 documents into 'departments'","timestamp":"2026-09-01T00:21:09.128Z"}
+{"level":"info","message":"[bootstrap] provisioned 4 documents into 'roles'","timestamp":"2026-09-01T00:21:09.157Z"}
+{"level":"info","message":"[bootstrap] provisioned 1 documents into 'system_settings'","timestamp":"2026-09-01T00:21:09.164Z"}
+{"level":"info","message":"[bootstrap] provisioned 1 documents into 'system_metrics'","timestamp":"2026-09-01T00:21:09.169Z"}
+{"level":"info","message":"[bootstrap] provisioned 3 documents into 'gis_layers'","timestamp":"2026-09-01T00:21:09.174Z"}
+{"level":"info","message":"[sla] sweep complete: 0 breached, 1 escalated","timestamp":"2026-09-01T00:21:09.226Z"}
+{"level":"info","message":"SmartCity OS Monolith listening on http://localhost:4100","timestamp":"2026-09-01T00:21:09.235Z"}

@@ -33,7 +33,6 @@ const STAFF_ROLES: UserRole[] = [UserRole.OFFICER, UserRole.DEPARTMENT_HEAD, Use
 const DEPARTMENT_NAMES: Record<string, string> = {
   "dept-public-works": "Public Works",
   "dept-water-sanitation": "Water & Sanitation",
-  "dept-health-transport": "Public Health & Transport",
 };
 
 const ALLOWED_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {

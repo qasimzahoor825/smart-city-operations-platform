@@ -15,5 +15,6 @@ analyticsRouter.get("/assets", analyticsController.assets);
 analyticsRouter.get("/sla", analyticsController.sla);
 analyticsRouter.get("/citizen-satisfaction", analyticsController.citizenSatisfaction);
 analyticsRouter.get("/time-series", analyticsController.timeSeries);
+analyticsRouter.get("/forecast", analyticsController.forecast);
 
 export default analyticsRouter;

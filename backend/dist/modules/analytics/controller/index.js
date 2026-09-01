@@ -33,6 +33,11 @@ exports.analyticsController = {
         const data = await service_1.analyticsService.timeSeries(days);
         res.json((0, utils_1.createApiResponse)(true, "Time series analytics", data));
     }),
+    forecast: (0, utils_1.asyncHandler)(async (req, res) => {
+        const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
+        const data = await service_1.analyticsService.forecast(days);
+        res.json((0, utils_1.createApiResponse)(true, "Predictive complaint-volume forecast", data));
+    }),
 };
 exports.default = exports.analyticsController;
 //# sourceMappingURL=index.js.map

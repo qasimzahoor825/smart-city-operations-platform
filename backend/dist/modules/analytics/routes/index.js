@@ -15,5 +15,6 @@ exports.analyticsRouter.get("/assets", controller_1.analyticsController.assets);
 exports.analyticsRouter.get("/sla", controller_1.analyticsController.sla);
 exports.analyticsRouter.get("/citizen-satisfaction", controller_1.analyticsController.citizenSatisfaction);
 exports.analyticsRouter.get("/time-series", controller_1.analyticsController.timeSeries);
+exports.analyticsRouter.get("/forecast", controller_1.analyticsController.forecast);
 exports.default = exports.analyticsRouter;
 //# sourceMappingURL=index.js.map

@@ -15,7 +15,6 @@ const STAFF_ROLES = [common_1.UserRole.OFFICER, common_1.UserRole.DEPARTMENT_HEA
 const DEPARTMENT_NAMES = {
     "dept-public-works": "Public Works",
     "dept-water-sanitation": "Water & Sanitation",
-    "dept-health-transport": "Public Health & Transport",
 };
 const ALLOWED_TRANSITIONS = {
     [client_1.AppointmentStatus.PENDING]: [client_1.AppointmentStatus.CONFIRMED, client_1.AppointmentStatus.CANCELLED],

@@ -27,7 +27,7 @@ exports.userIdParamSchema = zod_1.z.object({
 });
 exports.listUsersQuerySchema = zod_1.z.object({
     page: zod_1.z.coerce.number().int().positive().optional(),
-    limit: zod_1.z.coerce.number().int().positive().max(100).optional(),
+    limit: zod_1.z.coerce.number().int().positive().max(200).optional(),
     role: zod_1.z.enum(exports.userRoles).optional(),
     search: zod_1.z.string().optional(),
     departmentId: zod_1.z.string().optional(),

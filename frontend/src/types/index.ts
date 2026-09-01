@@ -258,3 +258,55 @@ export interface LiveSensorReading {
   longitude?: number;
   timestamp?: string | null;
 }
+
+export interface Anomaly {
+  id: string;
+  sensorId: string;
+  sensorName: string;
+  sensorType: string;
+  metricName: string;
+  metricValue: number;
+  unit: string;
+  expectedMean: number;
+  expectedStd: number;
+  zScore: number;
+  severity: "WARNING" | "CRITICAL";
+  reason: string;
+  detectedAt: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface AnomalyOverview {
+  total: number;
+  critical: number;
+  warning: number;
+  activeSensors: number;
+  bySensorType: { key: string; count: number }[];
+  latest: Anomaly[];
+  generatedAt: string;
+}
+
+export interface ForecastPoint {
+  date: string;
+  predicted: number;
+  lower: number;
+  upper: number;
+}
+
+export interface ForecastResult {
+  days: number;
+  windowDays: number;
+  method: string;
+  trend: "increasing" | "decreasing" | "stable";
+  slope: number;
+  avgDaily: number;
+  historical: { date: string; value: number }[];
+  forecast: ForecastPoint[];
+  meta: {
+    rSquared: number;
+    residualStd: number;
+    seasonalityDetected: boolean;
+  };
+  generatedAt: string;
+}

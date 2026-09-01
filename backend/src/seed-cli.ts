@@ -23,6 +23,7 @@ import {
   seedTrafficZones,
   seedAnnouncements,
 } from "./core/seed/reference";
+import { seedUsers } from "./modules/auth/repository";
 
 export interface SeedDatabaseOptions {
   /** Drop seeded collections first, then reseed. */
@@ -471,6 +472,13 @@ export async function seedDatabase(opts: SeedDatabaseOptions = {}): Promise<void
     })),
   );
   console.log(`  extra_citizens: ${n}`);
+
+  // Demo accounts (superadmin, dept heads, officers, citizen) — restore after reset
+  n = await upsertAll(
+    "users",
+    seedUsers.map((u) => ({ ...u })),
+  );
+  console.log(`  demo_users: ${n}`);
 
   // Operational data
   const complaints = buildComplaints(96);

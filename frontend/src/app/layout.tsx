@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AppProviders } from "@/components/providers/app-providers";
+import { AiChatWidget } from "@/components/chat/ai-chat-widget";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <AiChatWidget />
         </AppProviders>
       </body>
     </html>

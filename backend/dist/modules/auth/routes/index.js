@@ -14,7 +14,8 @@ exports.authRouter.post("/refresh", rate_limit_1.authLimiter, (0, validate_1.val
 exports.authRouter.post("/logout", controller_1.authController.logout);
 exports.authRouter.post("/forgot-password", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.forgotPasswordSchema), controller_1.authController.forgotPassword);
 exports.authRouter.post("/reset-password", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.resetPasswordSchema), controller_1.authController.resetPassword);
-exports.authRouter.post("/verify-email", controller_1.authController.verifyEmail);
+exports.authRouter.post("/verify-email", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.verifyEmailSchema), controller_1.authController.verifyEmail);
+exports.authRouter.post("/resend-otp", rate_limit_1.authLimiter, (0, validate_1.validateBody)(validation_1.resendVerificationSchema), controller_1.authController.resendOtp);
 exports.authRouter.get("/me", auth_1.requireAuth, controller_1.authController.me);
 exports.authRouter.patch("/me", auth_1.requireAuth, (0, validate_1.validateBody)(validation_1.updateProfileSchema), controller_1.authController.updateProfile);
 exports.authRouter.get("/sessions", auth_1.requireAuth, controller_1.authController.sessions);

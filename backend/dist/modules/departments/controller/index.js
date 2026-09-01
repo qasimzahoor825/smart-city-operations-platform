@@ -15,6 +15,12 @@ exports.departmentController = {
         });
         (0, paginate_1.paginatedResponse)(res, result.items, { page, limit }, "Departments fetched");
     }),
+    /** Public feed: sanitized department summaries, no authentication. */
+    publicList: (0, utils_1.asyncHandler)(async (req, res) => {
+        const { page, limit } = (0, paginate_1.paginationQuery)(req);
+        const result = await service_1.departmentService.listPublic({ page, limit });
+        res.json((0, utils_1.createListResponse)(result.items, result.pagination, "Departments fetched"));
+    }),
     get: (0, utils_1.asyncHandler)(async (req, res) => {
         const department = await service_1.departmentService.getById(req.params.id);
         res.json((0, utils_1.createApiResponse)(true, "Department fetched", department));

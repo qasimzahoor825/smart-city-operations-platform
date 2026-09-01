@@ -2,18 +2,26 @@
 
 import React from "react";
 import Link from "next/link";
-import { ClipboardList, CreditCard, CalendarClock, Bell, MapPin, ShieldAlert, Building2 } from "lucide-react";
+import {
+  ClipboardList,
+  CreditCard,
+  CalendarClock,
+  Bell,
+  MapPin,
+  ShieldAlert,
+} from "lucide-react";
 import { PageContainer, useAsync } from "@/components/shared/page-container";
 import { departmentsApi } from "@/services/operations";
+import { departmentSlug, departmentMeta } from "@/lib/departments";
 import type { Department } from "@/types";
 
 const QUICK_LINKS = [
-  { icon: ClipboardList, title: "Lodge a Grievance", desc: "Report potholes, water leakage, street lights and more.", href: "/citizen/complaints", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-  { icon: CreditCard, title: "Pay Utility Bills", desc: "Settle water, property and municipal dues securely.", href: "/citizen/payments", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
-  { icon: CalendarClock, title: "Book Appointments", desc: "Schedule meetings with municipal departments.", href: "/citizen/appointments", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-  { icon: Bell, title: "Advisories & Alerts", desc: "Stay up to date with city-wide notifications.", href: "/citizen/notifications", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
-  { icon: ShieldAlert, title: "Report an Emergency", desc: "Raise an SOS for fire, medical or flood incidents.", href: "/emergency", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
-  { icon: MapPin, title: "Track GIS Status", desc: "Visualize municipal assets and complaints on the map.", href: "/department/gis", color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
+  { icon: ClipboardList, title: "Lodge a Grievance", desc: "Report potholes, water leakage, street lights and more.", href: "/citizen/complaints/new", iconColor: "text-blue-600", ring: "bg-blue-50 text-blue-600 border-blue-100" },
+  { icon: CreditCard, title: "Pay Utility Bills", desc: "Settle water, property and municipal dues securely.", href: "/citizen/payments", iconColor: "text-amber-600", ring: "bg-amber-50 text-amber-600 border-amber-100" },
+  { icon: CalendarClock, title: "Book Appointments", desc: "Schedule meetings with municipal departments.", href: "/citizen/appointments", iconColor: "text-emerald-600", ring: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+  { icon: Bell, title: "Advisories & Alerts", desc: "Stay up to date with city-wide notifications.", href: "/citizen/notifications", iconColor: "text-purple-600", ring: "bg-purple-50 text-purple-600 border-purple-100" },
+  { icon: ShieldAlert, title: "Report an Emergency", desc: "Raise an SOS for fire, medical or flood incidents.", href: "/emergency", iconColor: "text-red-600", ring: "bg-red-50 text-red-600 border-red-100" },
+  { icon: MapPin, title: "Track GIS Status", desc: "Visualize municipal assets and complaints on the map.", href: "/department/gis", iconColor: "text-cyan-600", ring: "bg-cyan-50 text-cyan-600 border-cyan-100" },
 ] as const;
 
 export default function CitizenServicesPage() {
@@ -24,22 +32,28 @@ export default function CitizenServicesPage() {
       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
         Departments ({departments.length})
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         {loading && departments.length === 0
           ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 animate-pulse h-28" />
+              <div key={i} className="rounded-3xl border border-slate-200 bg-white p-7 animate-pulse h-32" />
             ))
-          : departments.map((d) => (
-              <Link key={d.id} href="/citizen/appointments" className="group">
-                <div className="rounded-3xl border p-6 bg-slate-900/60 hover:bg-slate-900 transition-all h-full bg-teal-500/10 border-teal-500/20">
-                  <div className="p-3 rounded-xl border w-fit mb-4 bg-teal-500/10 border-teal-500/20">
-                    <Building2 className="w-6 h-6 text-teal-400" />
+          : departments.map((d) => {
+              const meta = departmentMeta(departmentSlug(d));
+              const Icon = meta.icon;
+              return (
+                <Link
+                  key={d.id}
+                  href={`/citizen/departments/${departmentSlug(d)}`}
+                  className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/5 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                >
+                  <div className={`p-3 rounded-xl border w-fit mb-4 ${meta.ringClass}`}>
+                    <Icon className={`w-6 h-6 ${meta.iconClass}`} />
                   </div>
-                  <h3 className="text-base font-bold text-white">{d.name}</h3>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{d.description || "Municipal service department."}</p>
-                </div>
-              </Link>
-            ))}
+                  <h3 className="text-base font-bold text-slate-900">{d.name}</h3>
+                  <p className="text-sm text-slate-500 mt-1 leading-relaxed">{d.description || "Municipal service department."}</p>
+                </Link>
+              );
+            })}
         {!loading && departments.length === 0 && (
           <div className="col-span-full text-center text-slate-500 text-sm py-10">
             No departments have been registered yet.
@@ -54,14 +68,16 @@ export default function CitizenServicesPage() {
         {QUICK_LINKS.map((s) => {
           const Icon = s.icon;
           return (
-            <Link key={s.href} href={s.href} className="group">
-              <div className={`rounded-3xl border p-6 bg-slate-900/60 hover:bg-slate-900 transition-all h-full ${s.bg}`}>
-                <div className={`p-3 rounded-xl border w-fit mb-4 ${s.bg}`}>
-                  <Icon className={`w-6 h-6 ${s.color}`} />
-                </div>
-                <h3 className="text-base font-bold text-white">{s.title}</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
+            <Link
+              key={s.href}
+              href={s.href}
+              className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/5 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+            >
+              <div className={`p-3 rounded-xl border w-fit mb-4 ${s.ring}`}>
+                <Icon className={`w-6 h-6 ${s.iconColor}`} />
               </div>
+              <h3 className="text-base font-bold text-slate-900">{s.title}</h3>
+              <p className="text-sm text-slate-500 mt-1 leading-relaxed">{s.desc}</p>
             </Link>
           );
         })}

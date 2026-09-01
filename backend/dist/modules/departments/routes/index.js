@@ -21,6 +21,8 @@ function requireDepartmentScope(req, _res, next) {
     throw new common_2.ForbiddenError("You can only manage your own department");
 }
 exports.departmentRouter = (0, express_1.Router)();
+// Public feed — sanitized department list, no authentication required.
+exports.departmentRouter.get("/public", controller_1.departmentController.publicList);
 exports.departmentRouter.get("/", auth_1.requireAuth, controller_1.departmentController.list);
 exports.departmentRouter.get("/:id", auth_1.requireAuth, (0, validate_1.validateParams)(validation_1.departmentIdParamSchema), controller_1.departmentController.get);
 exports.departmentRouter.get("/:id/stats", auth_1.requireAuth, (0, validate_1.validateParams)(validation_1.departmentIdParamSchema), controller_1.departmentController.stats);

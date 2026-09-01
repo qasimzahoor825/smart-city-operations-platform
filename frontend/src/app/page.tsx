@@ -47,7 +47,7 @@ interface LiveStats {
 function Reveal({
   children,
   delay = 0,
-  y = 26,
+  y = 12,
   className,
 }: {
   children: React.ReactNode;
@@ -59,8 +59,8 @@ function Reveal({
     <motion.div
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -279,14 +279,17 @@ export default function SmartCityHomePage() {
       <div className="aurora-blob w-96 h-96 bg-teal-300/25 bottom-10 left-1/4 [animation-delay:-9s]" />
 
       <main className="flex-1 relative">
-        {/* ===================== HERO ===================== */}
-        <section id="metrics" className="relative overflow-hidden pt-14 pb-16 lg:pt-20 lg:pb-24">
-          <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_at_center,black_28%,transparent_72%)]" />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        {/* ===================== HERO (light premium) ===================== */}
+        <section id="metrics" className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-teal-50/40">
+          <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_at_50% 0%,black_20%,transparent_70%)]" />
+          <div className="aurora-blob w-[30rem] h-[30rem] bg-sky-300/25 -top-20 left-1/4" />
+          <div className="aurora-blob w-[26rem] h-[26rem] bg-indigo-300/20 top-24 -right-20 [animation-delay:-6s]" />
+          <div className="aurora-blob w-96 h-96 bg-teal-300/20 bottom-0 -left-16 [animation-delay:-3s]" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative py-20 lg:py-28">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               <div className="lg:col-span-6 space-y-8">
                 <Reveal>
-                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-sky-700 bg-white/70 backdrop-blur border border-sky-200 px-4 py-2 rounded-full shadow-sm">
+                  <div className="inline-flex items-center gap-2.5 text-xs font-semibold text-sky-700 bg-white/80 backdrop-blur border border-sky-200 px-4 py-2 rounded-full shadow-sm">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
@@ -296,11 +299,11 @@ export default function SmartCityHomePage() {
                 </Reveal>
 
                 <Reveal delay={0.06}>
-                  <h1 className="text-4xl sm:text-6xl lg:text-[4.25rem] font-black text-slate-900 tracking-tight leading-[1.05]">
+                  <h1 className="text-4xl sm:text-6xl lg:text-[4.25rem] font-black text-slate-900 tracking-tight leading-[1.04]">
                     One City.
                     <br />
                     <span className="text-gradient-animated">Zero Friction.</span>
-                    <span className="block mt-4 text-2xl sm:text-3xl font-extrabold text-slate-700">
+                    <span className="block mt-4 text-2xl sm:text-3xl font-extrabold text-slate-600">
                       Every service, department &amp; sensor — unified.
                     </span>
                   </h1>
@@ -315,10 +318,10 @@ export default function SmartCityHomePage() {
 
                 <Reveal delay={0.18}>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <HeroStat icon={<Megaphone className="w-4 h-4 text-sky-600" />} value={live.complaints} label="Complaints" accent="bg-sky-500/10" />
-                    <HeroStat icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} value={live.resolved} label="Resolved" accent="bg-emerald-500/10" />
-                    <HeroStat icon={<Landmark className="w-4 h-4 text-violet-600" />} value={live.departments} label="Departments" accent="bg-violet-500/10" />
-                    <HeroStat icon={<Users className="w-4 h-4 text-amber-600" />} value={live.officers} label="Officers" accent="bg-amber-500/10" />
+                    <HeroStat icon={<Megaphone className="w-4 h-4 text-sky-600" />} value={live.complaints} label="Complaints" accent="bg-sky-100" />
+                    <HeroStat icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} value={live.resolved} label="Resolved" accent="bg-emerald-100" />
+                    <HeroStat icon={<Landmark className="w-4 h-4 text-violet-600" />} value={live.departments} label="Departments" accent="bg-violet-100" />
+                    <HeroStat icon={<Users className="w-4 h-4 text-amber-600" />} value={live.officers} label="Officers" accent="bg-amber-100" />
                   </div>
                 </Reveal>
 
@@ -326,7 +329,7 @@ export default function SmartCityHomePage() {
                   <div className="flex flex-wrap items-center gap-4 pt-2">
                     <Link
                       href="/citizen/dashboard"
-                      className="px-8 py-3.5 rounded-xl smart-btn-teal btn-shine font-semibold text-sm flex items-center justify-center gap-2"
+                      className="px-8 py-3.5 rounded-xl smart-btn-teal btn-shine font-semibold text-sm flex items-center justify-center gap-2 shadow-md shadow-teal-500/25"
                     >
                       <span>Enter Citizen Portal</span>
                       <ArrowRight className="w-4 h-4" />
@@ -418,14 +421,14 @@ export default function SmartCityHomePage() {
 
         {/* ===================== MARQUEE TICKER ===================== */}
         <section className="py-5 border-y border-slate-200/80 bg-white/70 backdrop-blur-md">
-          <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+          <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_4%,black_96%,transparent)]">
             <div className="flex w-max animate-marquee gap-4 pr-4">
               {[marqueeServices, marqueeServices].map((set, setIndex) => (
                 <ul key={setIndex} aria-hidden={setIndex === 1} className="flex shrink-0 items-center gap-4">
                   {set.map((name) => (
                     <li
                       key={`${setIndex}-${name}`}
-                      className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full whitespace-nowrap"
+                      className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border border-slate-300 px-4 py-2 rounded-full whitespace-nowrap shadow-sm"
                     >
                       <Zap className="w-3.5 h-3.5 text-teal-600" />
                       {name}
@@ -438,7 +441,7 @@ export default function SmartCityHomePage() {
         </section>
 
         {/* ===================== FEATURE BENTO ===================== */}
-        <section id="services" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <section id="services" className="relative overflow-x-clip max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <Reveal>
             <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
               <span className="inline-flex items-center gap-2 text-xs font-bold text-teal-700 bg-teal-500/10 border border-teal-500/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
@@ -514,17 +517,20 @@ export default function SmartCityHomePage() {
               </div>
             </Reveal>
 
+            <div className="hidden md:block h-1 w-full flow-line rounded-full opacity-40 mb-8" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {steps.map((s, idx) => {
                 const Icon = s.icon;
                 return (
                   <Reveal key={s.step} delay={idx * 0.1}>
-                    <div className="card-glow relative h-full bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-7 hover:bg-white/10 transition-colors group">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${s.accent} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                    <div className="group relative h-full overflow-hidden rounded-3xl bg-white/5 backdrop-blur border border-white/10 p-7 hover:bg-white/10 transition-colors">
+                      <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${s.accent} opacity-60`} />
+                      <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors" />
+                      <div className="relative flex items-center justify-between mb-6">
+                        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${s.accent} text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform`}>
                           <Icon className="w-6 h-6" />
                         </div>
-                        <span className="text-5xl font-black text-white/10 group-hover:text-white/20 transition-colors">{s.step}</span>
+                        <span className="text-5xl font-black text-white/15 group-hover:text-white/25 transition-colors">{s.step}</span>
                       </div>
                       <h3 className="text-lg font-bold text-white mb-2">{s.title}</h3>
                       <p className="text-sm text-slate-300 leading-relaxed">{s.description}</p>

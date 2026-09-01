@@ -21,6 +21,7 @@ const ai_1 = require("../modules/ai");
 const analytics_1 = require("../modules/analytics");
 const audit_1 = require("../modules/audit");
 const sla_1 = require("../modules/sla");
+const iot_1 = require("../modules/iot");
 const PREFIX = config_1.config.apiPrefix;
 function mountRoutes(app) {
     app.use(`${PREFIX}/auth`, auth_1.authRouter);
@@ -43,6 +44,10 @@ function mountRoutes(app) {
     app.use(`${PREFIX}/ai`, ai_1.aiRouter);
     app.use(`${PREFIX}/audit-logs`, audit_1.auditRouter);
     app.use(`${PREFIX}/sla`, sla_1.slaRouter);
+    app.use(`${PREFIX}/iot`, iot_1.iotRouter);
+    // Compatibility aliases: legacy clients call /readings, /sensors, /anomalies, /ingest
+    // directly under the v1 root (microservice era paths).
+    app.use(PREFIX, iot_1.iotRouter);
     app.get(`${PREFIX}/health`, (_req, res) => {
         res.json({ success: true, status: "UP", service: "SmartCity OS Monolith", timestamp: new Date().toISOString() });
     });

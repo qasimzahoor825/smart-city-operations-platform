@@ -17,6 +17,15 @@ exports.departmentService = {
         }
         return (0, utils_1.paginate)(departments, page, limit);
     },
+    /** Public feed: name/code/description only — no member emails, no auth required. */
+    async listPublic(options = {}) {
+        const { page = 1, limit = 50 } = options;
+        const items = repository_1.departmentRepository.departments
+            .all()
+            .map((d) => this.toPublicDto(d))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        return (0, utils_1.paginate)(items, page, limit);
+    },
     async getById(id) {
         const department = repository_1.departmentRepository.departments.findById(id);
         if (!department)
@@ -132,6 +141,15 @@ exports.departmentService = {
             members: department.members,
             createdAt: department.createdAt,
             updatedAt: department.updatedAt,
+        };
+    },
+    toPublicDto(department) {
+        return {
+            id: department.id,
+            name: department.name,
+            code: department.code,
+            description: department.description ?? null,
+            createdAt: department.createdAt,
         };
     },
 };

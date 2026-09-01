@@ -75,13 +75,36 @@ export default function SubmitComplaintPage() {
     );
   };
 
+  const [isValidatingImage, setIsValidatingImage] = React.useState(false);
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-      setAttachedPhotos((prev) => [...prev, url]);
-      toast.success("Photo attached to complaint preview");
-    }
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      try {
+        setIsValidatingImage(true);
+        const result = await aiApi.validateImage(dataUrl, category);
+        if (result && result.accepted) {
+          setAttachedPhotos((prev) => [...prev, dataUrl]);
+          toast.success("Photo verified and attached");
+        } else {
+          toast.error(result?.reason || "This image does not match the selected category.");
+        }
+      } catch {
+        toast.error("Could not verify the image. Try again.");
+      } finally {
+        setIsValidatingImage(false);
+        if (e.target) e.target.value = "";
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Could not read the image file.");
+      if (e.target) e.target.value = "";
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAiAssist = async () => {
@@ -345,9 +368,13 @@ export default function SubmitComplaintPage() {
                       onChange={handlePhotoUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
-                    <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+                    {isValidatingImage ? (
+                      <span className="animate-spin border-2 border-teal-500/40 border-t-teal-600 rounded-full w-5 h-5 mx-auto mb-1" />
+                    ) : (
+                      <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+                    )}
                     <span className="text-xs font-semibold text-slate-600">
-                      Drag and drop
+                      {isValidatingImage ? "Verifying image..." : "Drag and drop"}
                     </span>
                   </div>
                 </div>

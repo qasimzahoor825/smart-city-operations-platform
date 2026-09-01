@@ -13,6 +13,8 @@ exports.paymentController = {
         const query = { page, limit };
         if (typeof req.query.userId === "string")
             query.userId = req.query.userId;
+        if (req.user?.id)
+            query.userName = req.user.email ? req.user.email.split("@")[0] : "Citizen";
         if (typeof req.query.status === "string")
             query.status = req.query.status;
         const { items, pagination } = await service_1.paymentService.listBills(query);

@@ -20,6 +20,7 @@ import { aiRouter } from "../modules/ai";
 import { analyticsRouter } from "../modules/analytics";
 import { auditRouter } from "../modules/audit";
 import { slaRouter } from "../modules/sla";
+import { iotRouter } from "../modules/iot";
 
 const PREFIX = config.apiPrefix;
 
@@ -44,6 +45,10 @@ export function mountRoutes(app: Express): void {
   app.use(`${PREFIX}/ai`, aiRouter);
   app.use(`${PREFIX}/audit-logs`, auditRouter);
   app.use(`${PREFIX}/sla`, slaRouter);
+  app.use(`${PREFIX}/iot`, iotRouter);
+  // Compatibility aliases: legacy clients call /readings, /sensors, /anomalies, /ingest
+  // directly under the v1 root (microservice era paths).
+  app.use(PREFIX, iotRouter);
 
   app.get(`${PREFIX}/health`, (_req, res) => {
     res.json({ success: true, status: "UP", service: "SmartCity OS Monolith", timestamp: new Date().toISOString() });

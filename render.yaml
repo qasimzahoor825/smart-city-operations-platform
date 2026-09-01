@@ -7,12 +7,14 @@ services:
     runtime: node
     repo: https://github.com/qasimzahoor825/smart-city-operations-platform
     plan: free
-    installCommand: npm ci
+    installCommand: npm install
     buildCommand: npm run build:packages && npm run db:generate --prefix packages/database && npm run build --prefix packages/database && npm run build --prefix backend
     startCommand: npm run start:monolith
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: EMAIL_TRANSPORT
@@ -21,6 +23,6 @@ services:
         generateValue: true
       - key: REFRESH_SECRET
         generateValue: true
-      # Optional persistence: set MONGODB_URL to a MongoDB Atlas URI.
+      # Optional persistence: set MONGODB_URI to a MongoDB Atlas URI.
       # Without it the monolith boots with seeded in-memory repositories
       # (data resets on each deploy/restart — fine for a demo).

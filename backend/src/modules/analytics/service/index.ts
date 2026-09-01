@@ -12,6 +12,7 @@ import type {
   AnalyticsOverview,
   AssetAnalytics,
   DepartmentAnalytics,
+  ForecastResult,
   SlaAnalytics,
   TimeSeriesPoint,
   ValueCount,
@@ -445,6 +446,88 @@ async function timeSeriesFromAggs(days: number): Promise<TimeSeriesPoint[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Predictive complaint-volume forecasting.
+// ---------------------------------------------------------------------------
+
+function fitLinear(values: number[]): { slope: number; intercept: number; rSquared: number; residualStd: number } {
+  const n = values.length;
+  if (n === 0) return { slope: 0, intercept: 0, rSquared: 0, residualStd: 0 };
+  const meanX = (n - 1) / 2;
+  const meanY = values.reduce((sum, v) => sum + v, 0) / n;
+  let numerator = 0;
+  let denominator = 0;
+  for (let i = 0; i < n; i += 1) {
+    numerator += (i - meanX) * (values[i] - meanY);
+    denominator += (i - meanX) ** 2;
+  }
+  const slope = denominator === 0 ? 0 : numerator / denominator;
+  const intercept = meanY - slope * meanX;
+  let ssRes = 0;
+  let ssTot = 0;
+  for (let i = 0; i < n; i += 1) {
+    const predicted = intercept + slope * i;
+    ssRes += (values[i] - predicted) ** 2;
+    ssTot += (values[i] - meanY) ** 2;
+  }
+  const rSquared = ssTot === 0 ? 1 : Math.max(0, 1 - ssRes / ssTot);
+  const residualStd = n < 2 ? 0 : Math.sqrt(ssRes / (n - 2));
+  return { slope, intercept, rSquared, residualStd };
+}
+
+function forecastFromCounts(daily: { date: string; value: number }[], days: number): ForecastResult {
+  const values = daily.map((d) => d.value);
+  const n = values.length;
+  const { slope, intercept, rSquared, residualStd } = fitLinear(values);
+  const avgDaily = n === 0 ? 0 : round1(values.reduce((sum, v) => sum + v, 0) / n);
+  const lastDate = n === 0 ? new Date() : new Date(`${daily[n - 1].date}T00:00:00Z`);
+  const margin = 1.96 * (residualStd || Math.max(1, avgDaily * 0.25));
+  const forecast: ForecastResult["forecast"] = [];
+  for (let i = 1; i <= days; i += 1) {
+    const predicted = Math.max(0, round1(intercept + slope * (n + i - 1)));
+    forecast.push({
+      date: new Date(lastDate.getTime() + i * 86_400_000).toISOString().slice(0, 10),
+      predicted,
+      lower: round1(Math.max(0, predicted - margin)),
+      upper: round1(predicted + margin),
+    });
+  }
+  const trend: ForecastResult["trend"] = slope > 0.05 ? "increasing" : slope < -0.05 ? "decreasing" : "stable";
+  return {
+    days,
+    windowDays: n,
+    method: "linear-regression",
+    trend,
+    slope: round1(slope),
+    avgDaily,
+    historical: daily,
+    forecast,
+    meta: {
+      rSquared: round1(rSquared),
+      residualStd: round1(residualStd),
+      seasonalityDetected: n >= 14,
+    },
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+async function forecastFromAggs(days: number): Promise<ForecastResult> {
+  const windowDays = 60;
+  const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
+  const created = await runAgg<{ _id: string; count: number }>("complaints", [
+    { $match: { createdAt: { $gte: since } } },
+    { $project: { day: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$createdAt" } } } } },
+    { $group: { _id: "$day", count: { $sum: 1 } } },
+  ]);
+  const createdMap = new Map(created.map((r) => [r._id, r.count]));
+  const daily: { date: string; value: number }[] = [];
+  for (let i = windowDays - 1; i >= 0; i -= 1) {
+    const date = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    daily.push({ date, value: createdMap.get(date) ?? 0 });
+  }
+  return forecastFromCounts(daily, days);
+}
+
+// ---------------------------------------------------------------------------
 // In-memory fallbacks (used when MongoDB is not connected).
 // ---------------------------------------------------------------------------
 
@@ -647,6 +730,25 @@ async function timeSeriesFromMemory(days: number): Promise<TimeSeriesPoint[]> {
   return [...points.values()];
 }
 
+async function forecastFromMemory(days: number): Promise<ForecastResult> {
+  const complaints = complaintRepository.complaints.all();
+  const windowDays = 60;
+  const since = new Date(Date.now() - windowDays * 86_400_000).getTime();
+  const dailyMap = new Map<string, number>();
+  for (let i = windowDays - 1; i >= 0; i -= 1) {
+    const date = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    dailyMap.set(date, 0);
+  }
+  for (const c of complaints) {
+    const created = new Date(c.createdAt).getTime();
+    if (created < since) continue;
+    const date = new Date(created).toISOString().slice(0, 10);
+    if (dailyMap.has(date)) dailyMap.set(date, (dailyMap.get(date) ?? 0) + 1);
+  }
+  const daily = [...dailyMap.entries()].map(([date, value]) => ({ date, value }));
+  return forecastFromCounts(daily, days);
+}
+
 // ---------------------------------------------------------------------------
 // Public service (aggregation when MongoDB is available, cache in Redis).
 // ---------------------------------------------------------------------------
@@ -702,6 +804,10 @@ export const analyticsService = {
 
   timeSeries(days = 30): Promise<TimeSeriesPoint[]> {
     return cached(`analytics:time:${days}`, 300, () => (isDb() ? timeSeriesFromAggs(days) : timeSeriesFromMemory(days)));
+  },
+
+  forecast(days = 30): Promise<ForecastResult> {
+    return cached(`analytics:forecast:${days}`, 300, () => (isDb() ? forecastFromAggs(days) : forecastFromMemory(days)));
   },
 };
 

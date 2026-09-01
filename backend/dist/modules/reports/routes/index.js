@@ -7,6 +7,8 @@ const auth_1 = require("../../../middleware/auth");
 const validate_1 = require("../../../middleware/validate");
 const validation_1 = require("../validation");
 exports.reportRouter = (0, express_1.Router)();
+// Public feed — aggregate platform counts only, no authentication required.
+exports.reportRouter.get("/public/overview", controller_1.reportController.overview);
 exports.reportRouter.use(auth_1.requireAuth);
 exports.reportRouter.get("/overview", controller_1.reportController.overview);
 exports.reportRouter.get("/analytics", controller_1.reportController.analytics);

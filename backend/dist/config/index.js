@@ -23,8 +23,22 @@ exports.config = {
     redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
     uploadDir: process.env.UPLOAD_DIR || "./uploads",
     mail: {
-        transport: process.env.EMAIL_TRANSPORT || "mock-console",
+        transport: process.env.EMAIL_TRANSPORT ||
+            (process.env.SMTP_HOST ? "smtp" : "mock-console"),
         from: process.env.EMAIL_FROM || "SmartCity OS <no-reply@smartcity.gov>",
+        smtp: {
+            host: process.env.SMTP_HOST || "",
+            port: Number(process.env.SMTP_PORT || 587),
+            user: process.env.SMTP_USER || "",
+            pass: process.env.SMTP_PASS || "",
+            secure: process.env.SMTP_SECURE === "true",
+        },
+    },
+    sms: {
+        fast2sms: {
+            apiKey: process.env.FAST2SMS_API_KEY || "",
+            senderId: process.env.FAST2SMS_SENDER_ID || "",
+        },
     },
     admin: {
         // Optional first-run super admin; created only if the env vars are set
@@ -36,7 +50,13 @@ exports.config = {
     ai: {
         geminiApiKey: process.env.GEMINI_API_KEY || "",
         // Keep the model configurable; falls back to heuristic classifiers when unavailable.
-        geminiModel: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+        geminiModel: process.env.GEMINI_MODEL || "gemini-3.6-flash",
+        // AI_PROVIDER: "gemini" (native API) or "openrouter" (unified gateway). Auto-selects openrouter when its key is set.
+        provider: process.env.AI_PROVIDER || (process.env.OPENROUTER_API_KEY ? "openrouter" : "gemini"),
+        openRouterApiKey: process.env.OPENROUTER_API_KEY || "",
+        aiModel: process.env.AI_MODEL || "google/gemini-3.7-flash",
+        // Chat uses a fast model so the assistant feels responsive; override with AI_CHAT_MODEL.
+        aiChatModel: process.env.AI_CHAT_MODEL || process.env.AI_MODEL || "google/gemini-3.7-flash",
     },
 };
 //# sourceMappingURL=index.js.map

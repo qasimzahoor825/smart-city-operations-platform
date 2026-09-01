@@ -97,7 +97,7 @@ const seedAppointments: StoredAppointment[] = [
     id: "app_seed_004",
     title: "Sanitation appeal hearing",
     status: AppointmentStatus.CANCELLED,
-    departmentId: "dept-health-transport",
+    departmentId: "dept-health",
     citizenId: "usr_seed_citizen2",
     scheduledAt: daysAgo(2),
     createdAt: daysAgo(8),

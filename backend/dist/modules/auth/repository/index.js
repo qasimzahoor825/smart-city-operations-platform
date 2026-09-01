@@ -68,7 +68,7 @@ exports.seedUsers = [
         email: "omar@health.gov",
         passwordHash: hashOf("Officer@1234"),
         role: common_1.UserRole.OFFICER,
-        departmentId: "dept-health-transport",
+        departmentId: "dept-health",
         isEmailVerified: true,
         isActive: true,
         createdAt: new Date(now.getTime() - 15 * 86_400_000).toISOString(),
@@ -235,10 +235,12 @@ exports.seedUsers = [
 const users = (0, repository_1.collection)("users");
 const sessions = (0, repository_1.collection)("auth_sessions");
 const passwordResets = (0, repository_1.collection)("password_resets");
+const emailVerifications = (0, repository_1.collection)("email_verifications");
 exports.authRepository = {
     users,
     sessions,
     passwordResets,
+    emailVerifications,
     findByEmail(email) {
         return users.all().find((u) => u.email.toLowerCase() === email.toLowerCase());
     },

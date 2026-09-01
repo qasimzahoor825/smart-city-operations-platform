@@ -24,6 +24,7 @@ export function PageContainer({ title, description, children }: DataPageProps) {
 export function useAsync<T>(loader: () => Promise<T>, fallback: T, deps: React.DependencyList = []) {
   const [data, setData] = React.useState<T>(fallback);
   const [loading, setLoading] = React.useState(true);
+  const [tick, setTick] = React.useState(0);
 
   React.useEffect(() => {
     let active = true;
@@ -42,9 +43,11 @@ export function useAsync<T>(loader: () => Promise<T>, fallback: T, deps: React.D
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, tick]);
 
-  return { data, loading };
+  const refresh = React.useCallback(() => setTick((t) => t + 1), []);
+
+  return { data, loading, refresh };
 }
 
 export { Card, CardHeader, CardTitle, CardDescription };

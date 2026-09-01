@@ -8,10 +8,22 @@ const common_1 = require("@smartcity/common");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const utils_1 = require("../../../core/utils");
 const repository_1 = require("../repository");
+const repository_2 = require("../../departments/repository");
+/** Flatten the stored record into the shape the frontend consumes. */
+function decorate(user) {
+    const departmentName = user.departmentId
+        ? repository_2.departmentRepository.departments.findById(user.departmentId)?.name ?? null
+        : null;
+    return {
+        ...user,
+        active: user.isActive ?? true,
+        departmentName,
+    };
+}
 exports.userService = {
     async list(options = {}) {
         const { page = 1, limit = 20, role, search, departmentId } = options;
-        let items = repository_1.userRepository.users.all().map((u) => repository_1.userRepository.toPublic(u));
+        let items = repository_1.userRepository.users.all().map((u) => decorate(repository_1.userRepository.toPublic(u)));
         if (role)
             items = items.filter((u) => u.role === role);
         if (departmentId)
@@ -28,7 +40,7 @@ exports.userService = {
         const user = repository_1.userRepository.users.findById(id);
         if (!user)
             throw new common_1.AppError("User not found", 404);
-        return repository_1.userRepository.toPublic(user);
+        return decorate(repository_1.userRepository.toPublic(user));
     },
     async create(dto) {
         const fullName = (dto.fullName ?? "").trim();

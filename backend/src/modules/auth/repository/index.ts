@@ -108,7 +108,7 @@ export const seedUsers: StoredUser[] = [
     email: "omar@health.gov",
     passwordHash: hashOf("Officer@1234"),
     role: UserRole.OFFICER,
-    departmentId: "dept-health-transport",
+    departmentId: "dept-health",
     isEmailVerified: true,
     isActive: true,
     createdAt: new Date(now.getTime() - 15 * 86_400_000).toISOString(),

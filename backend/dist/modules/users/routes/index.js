@@ -9,7 +9,7 @@ const audit_1 = require("../../../middleware/audit");
 const validate_1 = require("../../../middleware/validate");
 const validation_1 = require("../validation");
 exports.userRouter = (0, express_1.Router)();
-exports.userRouter.get("/", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateQuery)(validation_1.listUsersQuerySchema), controller_1.userController.list);
+exports.userRouter.get("/", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN, common_1.UserRole.DEPARTMENT_HEAD), (0, validate_1.validateQuery)(validation_1.listUsersQuerySchema), controller_1.userController.list);
 exports.userRouter.get("/me", auth_1.requireAuth, controller_1.userController.me);
 exports.userRouter.post("/", auth_1.requireAuth, (0, auth_1.requireRole)(common_1.UserRole.SUPER_ADMIN), (0, audit_1.auditAction)("user.created", "user"), (0, validate_1.validateBody)(validation_1.createUserSchema), controller_1.userController.create);
 exports.userRouter.get("/:id", auth_1.requireAuth, (0, auth_1.requireSameUserOrRole)(common_1.UserRole.SUPER_ADMIN), (0, validate_1.validateParams)(validation_1.userIdParamSchema), controller_1.userController.get);

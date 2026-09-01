@@ -42,6 +42,29 @@ const OPEN_STATUSES = [
 const RESOLVED_STATUSES = [client_1.TicketStatus.RESOLVED, client_1.TicketStatus.CITIZEN_FEEDBACK, client_1.TicketStatus.CLOSED];
 const TERMINAL_STATUSES = [client_1.TicketStatus.CLOSED, client_1.TicketStatus.REJECTED, client_1.TicketStatus.CANCELLED];
 const STAFF_ROLES = [common_1.UserRole.OFFICER, common_1.UserRole.DEPARTMENT_HEAD, common_1.UserRole.SUPER_ADMIN];
+const CATEGORY_DEPARTMENT = {
+    ROAD: "dept-public-works",
+    STREET_LIGHT: "dept-public-works",
+    ELECTRICITY: "dept-electricity",
+    POWER: "dept-electricity",
+    WATER: "dept-water-sanitation",
+    GARBAGE: "dept-municipal",
+    WASTE: "dept-municipal",
+    PARKS: "dept-municipal",
+    NOISE: "dept-municipal",
+    SANITATION: "dept-water-sanitation",
+    SEWAGE: "dept-water-sanitation",
+    HEALTH: "dept-health",
+    TRANSPORT: "dept-transport",
+    EMERGENCY: "dept-emergency",
+    EDUCATION: "dept-education",
+};
+function resolveDepartmentId(category, provided) {
+    if (provided)
+        return provided;
+    const key = (category || "").toUpperCase().trim();
+    return CATEGORY_DEPARTMENT[key] ?? null;
+}
 /**
  * Workflow engine: which statuses can be transitioned to from each status.
  * Designed to satisfy the full complaint lifecycle while still allowing
@@ -254,13 +277,17 @@ exports.complaintService = {
         const priority = dto.priority ?? client_1.TicketPriority.MEDIUM;
         if (!isPriority(priority))
             throw new common_1.AppError(`Invalid priority. Allowed: ${TICKET_PRIORITIES.join(", ")}`, 422);
+        const departmentId = resolveDepartmentId(dto.category, dto.departmentId);
         const slaHours = await service_2.slaService.resolveHours({
             priority,
             category: dto.category,
-            departmentId: dto.departmentId ?? null,
+            departmentId,
         });
         const createdAt = new Date().toISOString();
         const location = getLocation(dto.latitude, dto.longitude);
+        const departmentName = departmentId
+            ? repository_2.departmentRepository.departments.findById(departmentId)?.name ?? null
+            : null;
         const complaint = repository_3.complaintRepository.complaints.create({
             ref: (0, common_1.generateRef)("CMP"),
             title: dto.title.trim(),
@@ -281,10 +308,8 @@ exports.complaintService = {
             citizenName: displayName(actor),
             assignedToId: null,
             assignedToName: null,
-            departmentId: dto.departmentId ?? null,
-            departmentName: dto.departmentId
-                ? repository_2.departmentRepository.departments.findById(dto.departmentId)?.name ?? null
-                : null,
+            departmentId,
+            departmentName,
             ai: dto.ai ?? null,
             createdAt,
             updatedAt: createdAt,

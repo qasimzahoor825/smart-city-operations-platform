@@ -30,17 +30,16 @@ const indexedString = (options = {}) => ({
 exports.userSchema = new mongoose_1.Schema({
     id: indexedString({ required: true, unique: true }),
     fullName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     phoneNumber: { type: String, default: null },
-    role: { type: String, enum: Object.values(common_1.UserRole), default: common_1.UserRole.CITIZEN, index: true },
-    departmentId: { type: String, default: null, index: true },
+    role: { type: String, enum: Object.values(common_1.UserRole), default: common_1.UserRole.CITIZEN },
+    departmentId: { type: String, default: null },
     avatar: { type: String, default: null },
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true, index: true },
     lastLoginAt: { type: String, default: null },
 }, { collection: "users", timestamps: true, minimize: false, strict: false });
-exports.userSchema.index({ email: 1 }, { unique: true });
 exports.userSchema.index({ role: 1 });
 exports.userSchema.index({ departmentId: 1 });
 exports.sessionSchema = new mongoose_1.Schema({
@@ -49,14 +48,14 @@ exports.sessionSchema = new mongoose_1.Schema({
     refreshToken: { type: String, required: true, index: true },
     userAgent: { type: String, default: null },
     ip: { type: String, default: null },
-    expiresAt: { type: String, required: true, index: true },
+    expiresAt: { type: String, required: true },
 }, { collection: "auth_sessions", strict: false, minimize: false, versionKey: false });
 exports.sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 exports.passwordResetSchema = new mongoose_1.Schema({
     id: indexedString({ required: true, unique: true }),
     userId: indexedString({ required: true }),
     tokenHash: { type: String, required: true },
-    expiresAt: { type: String, required: true, index: true },
+    expiresAt: { type: String, required: true },
     usedAt: { type: String, default: null },
 }, { collection: "password_resets", timestamps: true, minimize: false, strict: false });
 exports.passwordResetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
@@ -73,7 +72,6 @@ exports.complaintSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(common_1.ComplaintStatus),
         default: common_1.ComplaintStatus.SUBMITTED,
-        index: true,
     },
     priority: { type: String, enum: Object.values(common_1.ComplaintPriority), index: true },
     latitude: { type: Number, default: null },
@@ -139,13 +137,13 @@ exports.assetSchema = new mongoose_1.Schema({
     id: indexedString({ required: true, unique: true }),
     name: { type: String, required: true, index: true },
     category: { type: String, enum: Object.values(common_1.AssetCategory), index: true },
-    status: { type: String, enum: Object.values(common_1.AssetStatus), index: true },
+    status: { type: String, enum: Object.values(common_1.AssetStatus) },
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },
     address: { type: String, default: null },
     imageUrl: { type: String, default: null },
     location: { type: [Number], default: undefined },
-    department: indexedString(),
+    department: indexedString({ index: false }),
     lastInspectionAt: { type: String, default: null },
     nextInspectionAt: { type: String, default: null },
     maintainedBy: { type: String, default: null },
@@ -174,7 +172,7 @@ exports.emergencySchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     severity: { type: String, enum: Object.values(common_1.ComplaintPriority), index: true },
-    status: { type: String, enum: Object.values(common_1.EmergencyStatus), index: true },
+    status: { type: String, enum: Object.values(common_1.EmergencyStatus) },
     latitude: { type: Number, default: null },
     longitude: { type: Number, default: null },
     address: { type: String, default: null },
@@ -287,7 +285,7 @@ exports.auditLogSchema = new mongoose_1.Schema({
 exports.auditLogSchema.index({ createdAt: -1 });
 exports.settingsSchema = new mongoose_1.Schema({
     id: indexedString({ required: true, unique: true }),
-    key: { type: String, required: true, unique: true, index: true },
+    key: { type: String, default: null, index: true },
     value: { type: mongoose_1.Schema.Types.Mixed, default: null },
     updatedBy: { type: String, default: null },
 }, { collection: "system_settings", strict: false, minimize: false, versionKey: false });
@@ -321,7 +319,7 @@ exports.complaintCategorySchema = new mongoose_1.Schema({
 // ---------------------------------------------------------------------------
 exports.feedbackSchema = new mongoose_1.Schema({
     id: indexedString({ required: true, unique: true }),
-    complaintId: { type: String, required: true, index: true },
+    complaintId: { type: String, required: true },
     citizenId: { type: String, required: true, index: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, default: null },

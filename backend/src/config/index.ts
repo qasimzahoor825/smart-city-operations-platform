@@ -57,6 +57,13 @@ export const config = {
   ai: {
     geminiApiKey: process.env.GEMINI_API_KEY || "",
     // Keep the model configurable; falls back to heuristic classifiers when unavailable.
-    geminiModel: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+    geminiModel: process.env.GEMINI_MODEL || "gemini-3.6-flash",
+    // AI_PROVIDER: "gemini" (native API) or "openrouter" (unified gateway). Auto-selects openrouter when its key is set.
+    provider:
+      process.env.AI_PROVIDER || (process.env.OPENROUTER_API_KEY ? "openrouter" : "gemini"),
+    openRouterApiKey: process.env.OPENROUTER_API_KEY || "",
+    aiModel: process.env.AI_MODEL || "google/gemini-3.7-flash",
+    // Chat uses a fast model so the assistant feels responsive; override with AI_CHAT_MODEL.
+    aiChatModel: process.env.AI_CHAT_MODEL || process.env.AI_MODEL || "google/gemini-3.7-flash",
   },
 } as const;

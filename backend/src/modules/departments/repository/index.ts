@@ -66,16 +66,6 @@ export const seedDepartments: DepartmentRecord[] = [
     updatedAt: daysAgo(2),
   },
   {
-    id: "dept-health-transport",
-    name: "Public Health & Transport",
-    code: "HT",
-    description: "Sanitation enforcement and public transport operations.",
-    managerId: null,
-    members: [membersOf("usr_seed_officer3", "Omar Farouk", "omar@health.gov", UserRole.OFFICER)],
-    createdAt: daysAgo(70),
-    updatedAt: daysAgo(10),
-  },
-  {
     id: "dept-health",
     name: "Health Department",
     code: "HD",
@@ -84,6 +74,7 @@ export const seedDepartments: DepartmentRecord[] = [
     members: [
       membersOf("usr_head_health", "Dr. Naila Rehman", "health.head@smartcity.gov", UserRole.DEPARTMENT_HEAD),
       membersOf("usr_officer_health", "Hassan Malik", "health.officer@smartcity.gov", UserRole.OFFICER),
+      membersOf("usr_seed_officer3", "Omar Farouk", "omar@health.gov", UserRole.OFFICER),
     ],
     createdAt: daysAgo(66),
     updatedAt: daysAgo(3),

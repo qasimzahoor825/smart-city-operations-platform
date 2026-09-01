@@ -60,3 +60,27 @@ export interface SlaAnalytics {
   averageHours: number;
   byPriority: ValueCount[];
 }
+
+export interface ForecastPoint {
+  date: string;
+  predicted: number;
+  lower: number;
+  upper: number;
+}
+
+export interface ForecastResult {
+  days: number;
+  windowDays: number;
+  method: string;
+  trend: "increasing" | "decreasing" | "stable";
+  slope: number;
+  avgDaily: number;
+  historical: { date: string; value: number }[];
+  forecast: ForecastPoint[];
+  meta: {
+    rSquared: number;
+    residualStd: number;
+    seasonalityDetected: boolean;
+  };
+  generatedAt: string;
+}

@@ -368,7 +368,7 @@ auditLogSchema.index({ createdAt: -1 });
 export const settingsSchema = new Schema<any>(
   {
     id: indexedString({ required: true, unique: true }),
-    key: { type: String, required: true, unique: true, index: true },
+    key: { type: String, default: null, index: true },
     value: { type: Schema.Types.Mixed, default: null },
     updatedBy: { type: String, default: null },
   },

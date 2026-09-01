@@ -69,6 +69,30 @@ const RESOLVED_STATUSES: TicketStatus[] = [TicketStatus.RESOLVED, TicketStatus.C
 const TERMINAL_STATUSES: TicketStatus[] = [TicketStatus.CLOSED, TicketStatus.REJECTED, TicketStatus.CANCELLED];
 const STAFF_ROLES: UserRole[] = [UserRole.OFFICER, UserRole.DEPARTMENT_HEAD, UserRole.SUPER_ADMIN];
 
+const CATEGORY_DEPARTMENT: Record<string, string> = {
+  ROAD: "dept-public-works",
+  STREET_LIGHT: "dept-public-works",
+  ELECTRICITY: "dept-electricity",
+  POWER: "dept-electricity",
+  WATER: "dept-water-sanitation",
+  GARBAGE: "dept-municipal",
+  WASTE: "dept-municipal",
+  PARKS: "dept-municipal",
+  NOISE: "dept-municipal",
+  SANITATION: "dept-water-sanitation",
+  SEWAGE: "dept-water-sanitation",
+  HEALTH: "dept-health",
+  TRANSPORT: "dept-transport",
+  EMERGENCY: "dept-emergency",
+  EDUCATION: "dept-education",
+};
+
+function resolveDepartmentId(category: string, provided?: string | null): string | null {
+  if (provided) return provided;
+  const key = (category || "").toUpperCase().trim();
+  return CATEGORY_DEPARTMENT[key] ?? null;
+}
+
 /**
  * Workflow engine: which statuses can be transitioned to from each status.
  * Designed to satisfy the full complaint lifecycle while still allowing
@@ -301,13 +325,17 @@ export const complaintService = {
     const priority = dto.priority ?? TicketPriority.MEDIUM;
     if (!isPriority(priority)) throw new AppError(`Invalid priority. Allowed: ${TICKET_PRIORITIES.join(", ")}`, 422);
 
+    const departmentId = resolveDepartmentId(dto.category, dto.departmentId);
     const slaHours = await slaService.resolveHours({
       priority,
       category: dto.category,
-      departmentId: dto.departmentId ?? null,
+      departmentId,
     });
     const createdAt = new Date().toISOString();
     const location = getLocation(dto.latitude, dto.longitude);
+    const departmentName = departmentId
+      ? departmentRepository.departments.findById(departmentId)?.name ?? null
+      : null;
     const complaint = complaintRepository.complaints.create({
       ref: generateRef("CMP"),
       title: dto.title.trim(),
@@ -328,10 +356,8 @@ export const complaintService = {
       citizenName: displayName(actor),
       assignedToId: null,
       assignedToName: null,
-      departmentId: dto.departmentId ?? null,
-      departmentName: dto.departmentId
-        ? departmentRepository.departments.findById(dto.departmentId)?.name ?? null
-        : null,
+      departmentId,
+      departmentName,
       ai: dto.ai ?? null,
       createdAt,
       updatedAt: createdAt,

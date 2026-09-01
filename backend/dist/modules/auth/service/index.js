@@ -10,10 +10,44 @@ const crypto_1 = __importDefault(require("crypto"));
 const common_2 = require("@smartcity/common");
 const repository_1 = require("../repository");
 const jwt_1 = require("../../../lib/jwt/jwt");
+const mailer_1 = require("../../../lib/mailer");
+const sms_1 = require("../../../lib/sms");
 const config_1 = require("../../../config");
-const ACCESS_TTL_SECONDS = (0, jwt_1.ttlSeconds)("15m");
+const OTP_TTL_MS = 10 * 60_000;
+function generateOtp(seed) {
+    if (seed) {
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+        }
+        return String(hash % 900000 + 100000);
+    }
+    return String(crypto_1.default.randomInt(100000, 1000000));
+}
+const hashOtp = (otp) => crypto_1.default.createHash("sha256").update(otp).digest("hex");
+/** Returns a fresh, unused OTP record for the user (creating + emailing it). */
+async function sendVerificationOtp(user) {
+    const now = new Date();
+    repository_1.authRepository.emailVerifications
+        .all()
+        .filter((v) => v.userId === user.id && !v.usedAt && new Date(v.expiresAt).getTime() > now.getTime())
+        .forEach((v) => repository_1.authRepository.emailVerifications.update(v.id, { usedAt: now.toISOString() }));
+    const otp = generateOtp(config_1.config.env === "test" ? user.email : undefined);
+    repository_1.authRepository.emailVerifications.create({
+        userId: user.id,
+        email: user.email,
+        otpHash: hashOtp(otp),
+        expiresAt: new Date(now.getTime() + OTP_TTL_MS).toISOString(),
+        usedAt: null,
+        createdAt: now.toISOString(),
+    });
+    await mailer_1.mailer.sendOtp(user.email, otp, user.fullName);
+    if (user.phoneNumber) {
+        await (0, sms_1.sendSmsOtp)(user.phoneNumber, otp);
+    }
+}
 exports.authService = {
-    async register(dto, meta) {
+    async register(dto, _meta) {
         const email = dto.email.trim().toLowerCase();
         if (repository_1.authRepository.findByEmail(email)) {
             throw new common_2.ConflictError("An account with this email already exists");
@@ -33,8 +67,8 @@ exports.authService = {
             createdAt: now,
             updatedAt: now,
         });
-        const publicUser = repository_1.authRepository.toPublic(user);
-        return this.issueSession(publicUser, meta);
+        await sendVerificationOtp(user);
+        return { user: repository_1.authRepository.toPublic(user), requiresOtp: true };
     },
     async login(dto, meta) {
         const email = dto.email.trim().toLowerCase();
@@ -46,8 +80,48 @@ exports.authService = {
         const valid = await bcryptjs_1.default.compare(dto.password, user.passwordHash);
         if (!valid)
             throw new common_2.UnauthorizedError("Invalid credentials");
+        if (!user.isEmailVerified) {
+            await sendVerificationOtp(user);
+            throw new common_2.ForbiddenError(`Your email is not verified. A 6-digit code has been sent to ${user.email} — enter it on the verification screen to sign in.`);
+        }
         const publicUser = repository_1.authRepository.toPublic(user);
         return this.issueSession(publicUser, meta);
+    },
+    async resendVerificationOtp(emailRaw) {
+        const email = emailRaw.trim().toLowerCase();
+        const user = repository_1.authRepository.findByEmail(email);
+        if (!user) {
+            return { message: "If an account exists, a new verification code has been sent." };
+        }
+        if (user.isEmailVerified) {
+            return { message: "Your email is already verified. You can sign in now." };
+        }
+        await sendVerificationOtp(user);
+        return { message: "A new verification code has been sent to your email." };
+    },
+    async verifyEmailOtp(emailRaw, otp, meta) {
+        const email = emailRaw.trim().toLowerCase();
+        const user = repository_1.authRepository.findByEmail(email);
+        if (!user)
+            throw new common_2.UnauthorizedError("Invalid verification code");
+        if (user.isEmailVerified) {
+            return this.issueSession(repository_1.authRepository.toPublic(user), meta);
+        }
+        const otpHash = hashOtp(otp.trim());
+        const record = repository_1.authRepository.emailVerifications
+            .all()
+            .filter((v) => v.userId === user.id)
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            .find((v) => v.otpHash === otpHash && !v.usedAt && new Date(v.expiresAt).getTime() > Date.now());
+        if (!record)
+            throw new common_2.UnauthorizedError("Invalid or expired verification code");
+        const now = new Date().toISOString();
+        repository_1.authRepository.emailVerifications.update(record.id, { usedAt: now });
+        const updatedUser = repository_1.authRepository.users.update(user.id, {
+            isEmailVerified: true,
+            updatedAt: now,
+        });
+        return this.issueSession(repository_1.authRepository.toPublic(updatedUser), meta);
     },
     async refresh(refreshToken, meta) {
         const session = repository_1.authRepository.sessions.all().find((s) => s.refreshToken === refreshToken);

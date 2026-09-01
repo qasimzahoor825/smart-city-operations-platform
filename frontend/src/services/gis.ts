@@ -1,5 +1,5 @@
 import api from "@/services/api-client";
-import type { ApiResponse, LiveSensorReading, MapMarker } from "@/types";
+import type { Anomaly, AnomalyOverview, ApiResponse, LiveSensorReading, MapMarker } from "@/types";
 
 export interface GisLayer {
   id: string;
@@ -39,5 +39,23 @@ export const iotApi = {
   async live(): Promise<LiveSensorReading[]> {
     const { data } = await api.get<ApiResponse<LiveSensorReading[]>>("/readings/live");
     return data.data ?? [];
+  },
+  async sensors(): Promise<LiveSensorReading[]> {
+    const { data } = await api.get<ApiResponse<LiveSensorReading[]>>("/iot/sensors");
+    return data.data ?? [];
+  },
+  async sensorReadings(sensorId: string, limit = 120): Promise<LiveSensorReading[]> {
+    const { data } = await api.get<ApiResponse<LiveSensorReading[]>>(`/iot/readings/${sensorId}`, {
+      params: { limit },
+    });
+    return data.data ?? [];
+  },
+  async anomalies(limit = 50): Promise<Anomaly[]> {
+    const { data } = await api.get<ApiResponse<Anomaly[]>>("/iot/anomalies", { params: { limit } });
+    return data.data ?? [];
+  },
+  async anomalyOverview(): Promise<AnomalyOverview | null> {
+    const { data } = await api.get<ApiResponse<AnomalyOverview>>("/iot/anomalies/overview");
+    return data.data ?? null;
   },
 };

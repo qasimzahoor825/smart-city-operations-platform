@@ -38,6 +38,12 @@ export const analyticsController = {
     const data = await analyticsService.timeSeries(days);
     res.json(createApiResponse(true, "Time series analytics", data));
   }),
+
+  forecast: asyncHandler(async (req: Request, res: Response) => {
+    const days = Math.min(90, Math.max(7, Number(req.query.days) || 30));
+    const data = await analyticsService.forecast(days);
+    res.json(createApiResponse(true, "Predictive complaint-volume forecast", data));
+  }),
 };
 
 export default analyticsController;

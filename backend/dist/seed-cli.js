@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.seedDatabase = seedDatabase;
 /**
  * SmartCity OS — Database Seeder (operational data)
  *
@@ -19,8 +20,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const config_1 = require("./config");
 const repository_1 = require("./core/database/repository");
 const reference_1 = require("./core/seed/reference");
+const repository_2 = require("./modules/auth/repository");
 const COLLECTIONS_TO_RESET = [
     "complaints",
     "complaint_comments",
@@ -391,7 +394,14 @@ function buildFeedback(resolvedComplaints) {
 }
 async function main() {
     console.log("🌱 SmartCity OS seeder starting...");
-    if (RESET_ARG) {
+    await mongoose_1.default.connect(config_1.config.database.mongoUrl);
+    await seedDatabase({ reset: RESET_ARG });
+    await mongoose_1.default.disconnect();
+    console.log("✅ Seeding completed successfully!");
+}
+async function seedDatabase(opts = {}) {
+    const { reset = false } = opts;
+    if (reset) {
         console.log("🗑️  --reset: dropping seeded collections...");
         for (const name of COLLECTIONS_TO_RESET) {
             await (0, repository_1.modelFor)(name).deleteMany({});
@@ -429,6 +439,9 @@ async function main() {
         updatedAt: daysAgo(2),
     })));
     console.log(`  extra_citizens: ${n}`);
+    // Demo accounts (superadmin, dept heads, officers, citizen) — restore after reset
+    n = await upsertAll("users", repository_2.seedUsers.map((u) => ({ ...u })));
+    console.log(`  demo_users: ${n}`);
     // Operational data
     const complaints = buildComplaints(96);
     n = await insertIfEmpty("complaints", complaints);
@@ -483,11 +496,11 @@ async function main() {
     });
     n = await insertIfEmpty("complaint_timelines", timelineDocs);
     console.log(`  complaint_timelines: ${n}`);
-    await mongoose_1.default.disconnect();
-    console.log("✅ Seeding completed successfully!");
 }
-main().catch((err) => {
-    console.error("❌ Seeding failed:", err);
-    process.exit(1);
-});
+if (require.main === module) {
+    main().catch((err) => {
+        console.error("❌ Seeding failed:", err);
+        process.exit(1);
+    });
+}
 //# sourceMappingURL=seed-cli.js.map

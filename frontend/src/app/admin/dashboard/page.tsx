@@ -24,7 +24,9 @@ import {
 import { toast } from "sonner";
 import { usersApi, departmentsApi, assetsApi, emergenciesApi, notificationsApi, reportsApi, type AssetStats } from "@/services/operations";
 import { complaintsApi } from "@/services/complaints";
-import type { AppNotification, Officer } from "@/types";
+import { analyticsApi } from "@/services/analytics";
+import { iotApi } from "@/services/gis";
+import type { AnomalyOverview, AppNotification, ForecastResult, Officer } from "@/types";
 
 const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: Home },
@@ -65,11 +67,14 @@ export default function AdminDashboardPage() {
   const [deptPerformance, setDeptPerformance] = React.useState<{ name: string; total: number; open: number; resolved: number }[]>([]);
   const [activityRows, setActivityRows] = React.useState<string[][]>([]);
   const [recentRows, setRecentRows] = React.useState<string[][]>([]);
+  const [forecast, setForecast] = React.useState<ForecastResult | null>(null);
+  const [anomalyOverview, setAnomalyOverview] = React.useState<AnomalyOverview | null>(null);
   const [healthRows, setHealthRows] = React.useState<string[][]>([
     ["API Status", "Loading…", "bg-slate-400"],
     ["Database Status", "Loading…", "bg-slate-400"],
     ["Notification Service", "Loading…", "bg-slate-400"],
     ["GIS Service", "Loading…", "bg-slate-400"],
+    ["AI Services", "Loading…", "bg-slate-400"],
   ]);
 
   const refresh = React.useCallback(async () => {
@@ -79,6 +84,7 @@ export default function AdminDashboardPage() {
       database: { ok: false },
       notifications: { ok: false },
       gis: { ok: false },
+      ai: { ok: false },
     };
 
     const fetchUsers = usersApi
@@ -144,9 +150,23 @@ export default function AdminDashboardPage() {
         return res;
       })
       .catch(() => null);
+    const fetchForecast = analyticsApi
+      .forecast(14)
+      .then((res) => {
+        if (res) healthMap.ai.ok = true;
+        return res;
+      })
+      .catch(() => null);
+    const fetchAnomalies = iotApi
+      .anomalyOverview()
+      .then((res) => {
+        if (res) healthMap.ai.ok = true;
+        return res;
+      })
+      .catch(() => null);
 
     try {
-      const [usersRes, deptRes, complaintsRes, complaintStatsRes, assetsRes, emergencies, notifications, overviewRes, analyticsRes] = await Promise.all([
+      const [usersRes, deptRes, complaintsRes, complaintStatsRes, assetsRes, emergencies, notifications, overviewRes, analyticsRes, forecastRes, anomaliesRes] = await Promise.all([
         fetchUsers,
         fetchDepartments,
         fetchComplaints,
@@ -156,6 +176,8 @@ export default function AdminDashboardPage() {
         fetchNotifications,
         fetchOverview,
         fetchAnalytics,
+        fetchForecast,
+        fetchAnomalies,
       ]);
 
       const citizens = usersRes?.data?.filter((u: Officer) => u.role === "CITIZEN").length ?? 0;
@@ -181,6 +203,8 @@ export default function AdminDashboardPage() {
           resolved: d.resolved,
         })) ?? [];
       setDeptPerformance(deptBreakdown);
+      setForecast(forecastRes ?? null);
+      setAnomalyOverview(anomaliesRes ?? null);
 
       const notificationRows: string[][] = (notifications ?? []).map((n: AppNotification) => [
         new Date(n.createdAt).toLocaleString(),
@@ -201,9 +225,10 @@ export default function AdminDashboardPage() {
         ["Database Status", healthMap.database.ok ? "Green" : "Degraded", healthMap.database.ok ? "bg-emerald-500" : "bg-yellow-400"],
         ["Notification Service", healthMap.notifications.ok ? "Green" : "Degraded", healthMap.notifications.ok ? "bg-emerald-500" : "bg-lime-500"],
         ["GIS Service", healthMap.gis.ok ? "Green" : "Degraded", healthMap.gis.ok ? "bg-emerald-500" : "bg-red-500"],
+        ["AI Services", healthMap.ai.ok ? "Green" : "Degraded", healthMap.ai.ok ? "bg-emerald-500" : "bg-yellow-400"],
       ];
       setHealthRows(healthBuild);
-      if (!healthMap.api.ok && !healthMap.database.ok && !healthMap.notifications.ok && !healthMap.gis.ok) {
+      if (!healthMap.api.ok && !healthMap.database.ok && !healthMap.notifications.ok && !healthMap.gis.ok && !healthMap.ai.ok) {
         toast.error("Dashboard data unavailable. Check the API server.");
       }
     } catch (error) {
@@ -295,6 +320,15 @@ export default function AdminDashboardPage() {
                   ) : (
                     <SimpleTable headers={["Time", "Log"]} rows={activityRows} />
                   )}
+                </Panel>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_.9fr]">
+                <Panel title={`AI Complaint Forecast${forecast ? ` · next ${forecast.days} days` : ""}`} action={forecast ? <span className="rounded bg-teal-50 px-2 py-0.5 text-[10px] font-black text-teal-700 uppercase">{forecast.trend}</span> : undefined}>
+                  <ForecastChart result={forecast} />
+                </Panel>
+                <Panel title={`IoT Anomaly Feed${anomalyOverview ? ` (${anomalyOverview.total})` : ""}`}>
+                  <AnomalyFeed overview={anomalyOverview} />
                 </Panel>
               </div>
 
@@ -469,6 +503,84 @@ function SimpleTable({ headers, rows }: { headers: string[]; rows: string[][] })
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ForecastChart({ result }: { result: ForecastResult | null }) {
+  if (!result || result.forecast.length === 0) {
+    return <p className="py-10 text-xs font-semibold text-slate-400">No forecast data available.</p>;
+  }
+  const points = result.forecast.slice(0, 14);
+  const width = 600;
+  const height = 180;
+  const pad = 20;
+  const allValues = points.flatMap((p) => [p.predicted, p.lower, p.upper]);
+  const max = Math.max(1, ...allValues);
+  const xStep = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
+  const y = (value: number) => height - pad - (Math.max(0, value) / max) * (height - pad * 2);
+  const line = points.map((point, i) => `${pad + i * xStep},${y(point.predicted)}`).join(" ");
+  const band = [
+    ...points.map((point, i) => `${pad + i * xStep},${y(point.upper)}`),
+    ...[...points]
+      .reverse()
+      .map((point, i) => `${pad + (points.length - 1 - i) * xStep},${y(point.lower)}`),
+  ].join(" ");
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap gap-3 text-[10px] text-slate-500">
+        <span>Method: <strong>{result.method}</strong></span>
+        <span>Avg: <strong>{result.avgDaily}/day</strong></span>
+        <span>Slope: <strong>{result.slope}</strong></span>
+        <span>Fit (R²): <strong>{result.meta.rSquared}</strong></span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-40 w-full">
+        {[0, 1, 2, 3].map((gridLine) => (
+          <line key={gridLine} x1={pad} x2={width - pad} y1={pad + gridLine * ((height - pad * 2) / 3)} y2={pad + gridLine * ((height - pad * 2) / 3)} stroke="#e2e8f0" />
+        ))}
+        <polygon points={band} fill="#0ea5e9" opacity="0.18" />
+        <polyline points={line} fill="none" stroke="#0284c7" strokeWidth="3" />
+      </svg>
+      <div className="mt-1 flex justify-between text-[10px] text-slate-400">
+        <span>{points[0]?.date ?? ""}</span>
+        <span>{points[points.length - 1]?.date ?? ""}</span>
+      </div>
+      <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="h-1.5 w-4 rounded bg-sky-600" /> Predicted volume</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded bg-sky-300/40" /> 95% confidence band</span>
+      </div>
+    </div>
+  );
+}
+
+function AnomalyFeed({ overview }: { overview: AnomalyOverview | null }) {
+  if (!overview) return <p className="py-8 text-xs font-semibold text-slate-400">No anomaly data available.</p>;
+  const anomalies = overview.latest.slice(0, 6);
+  if (anomalies.length === 0) {
+    return <p className="py-8 text-xs font-semibold text-slate-400">All sensors operating normally.</p>;
+  }
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2 pb-1">
+        <span className="rounded bg-slate-900 px-2 py-0.5 text-[10px] font-black text-white">{overview.total} total</span>
+        <span className="rounded bg-red-100 px-2 py-0.5 text-[10px] font-black text-red-700">{overview.critical} critical</span>
+        <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">{overview.warning} warnings</span>
+        <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{overview.activeSensors} sensors</span>
+      </div>
+      {anomalies.map((anomaly) => (
+        <div key={anomaly.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-xs font-bold text-slate-800">
+              <span className={`h-2 w-2 shrink-0 rounded-full ${anomaly.severity === "CRITICAL" ? "bg-red-500" : "bg-amber-400"}`} />
+              <span className="truncate">{anomaly.sensorName}</span>
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-slate-500">{anomaly.reason}</p>
+          </div>
+          <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-black ${anomaly.severity === "CRITICAL" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+            {anomaly.metricValue}{anomaly.unit} · {anomaly.zScore}σ
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

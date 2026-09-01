@@ -142,7 +142,6 @@ exports.assetService = {
         return updated;
     },
     async remove(id, actor) {
-        const asset = await this.getById(id);
         assertCanManageAsset(actor);
         repository_1.assetRepository.assets.delete(id);
         repository_1.assetRepository.inspections
@@ -157,7 +156,6 @@ exports.assetService = {
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },
     async createInspection(assetId, actor, dto) {
-        const asset = await this.getById(assetId);
         assertCanManageAsset(actor);
         if (!dto.status || !dto.status.trim())
             throw new common_1.ValidationError({ status: "status is required" });
