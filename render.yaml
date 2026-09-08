@@ -1,4 +1,6 @@
-# Render Blueprint — SmartCity OS Backend (monolith)
+# Render Blueprint — SmartCity OS
+# Primary: smartcity-os-frontend (self-contained: website + embedded API monolith)
+# Optional extra: smartcity-os-backend (standalone API, can be removed if not needed)
 # Deploy: https://dashboard.render.com/blueprints (connect GitHub repo qasimzahoor825/smart-city-operations-platform)
 services:
   - type: web
@@ -39,7 +41,9 @@ services:
       - key: ABSTRACT_API_KEY # optional email deliverability check
         sync: false
 
-  # ------ Web App (Next.js) ------
+  # ------ Web App (Next.js) — SELF-CONTAINED ------
+  # The Next.js build embeds the Express monolith (frontend/pages/api/v1/[...slug].ts),
+  # so ONE service serves the whole platform: website + REST/WS API + in-memory demo data.
   - type: web
     name: smartcity-os-frontend
     runtime: node
@@ -56,18 +60,32 @@ services:
         value: "SmartCity Ops"
       - key: NEXT_PUBLIC_APP_ENV
         value: production
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: smartcity-os-backend
-          type: web
-          property: url
-        value: /api/v1
-      - key: NEXT_PUBLIC_SOCKET_URL
-        fromService:
-          name: smartcity-os-backend
-          type: web
-          property: url
       - key: NEXT_PUBLIC_AUTH_TOKEN_KEY
         value: smartcity_access_token
       - key: NEXT_PUBLIC_AUTH_REFRESH_KEY
         value: smartcity_refresh_token
+      # The embedded monolith reads the same runtime env:
+      - key: DEMO_MODE
+        value: "true" # on-screen OTP + auto-verify enabled
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REFRESH_SECRET
+        generateValue: true
+      - key: AI_PROVIDER
+        value: heuristic
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: CLIENT_URL
+        value: "https://smartcity-os-frontend.onrender.com"
+      - key: EMAIL_TRANSPORT
+        value: mock-console # switch to smtp + SMTP_USER/SMTP_PASS for real OTP email
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: MONGODB_URI # optional — leave unset to run on in-memory demo data
+        sync: false
+      - key: ABSTRACT_API_KEY # optional email deliverability check
+        sync: false
