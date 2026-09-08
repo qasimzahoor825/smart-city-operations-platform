@@ -15,8 +15,7 @@ services:
         value: production
       - key: DEMO_MODE
         value: "true" # on-screen OTP + auto-verify enabled (email/SMS not required)
-      - key: PORT
-        value: 4100
+      # NOTE: no PORT override here — Render injects $PORT (10000) and the app binds it
       - key: MONGODB_URI # optional — leave unset to run on in-memory demo data
         sync: false
       - key: JWT_SECRET
@@ -47,7 +46,7 @@ services:
     plan: free
     rootDir: /
     buildCommand: npm run build:frontend
-    startCommand: npm run start:frontend
+    startCommand: npm run start:render --prefix frontend
     healthCheckPath: /
     autoDeploy: true
     envVars:
