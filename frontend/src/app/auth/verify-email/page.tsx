@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BadgeCheck, Mail, RefreshCw, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Mail, RefreshCw, ShieldCheck, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { authApi } from "@/services/auth";
@@ -24,13 +24,33 @@ function VerifyEmailInner() {
 
   const [email, setEmail] = React.useState(emailParam ? decodeURIComponent(emailParam) : "");
   const [otp, setOtp] = React.useState("");
+  const [demoOtp, setDemoOtp] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [resent, setResent] = React.useState(false);
   const [cooldown, setCooldown] = React.useState(0);
+  const autoFetched = React.useRef(false);
 
   React.useEffect(() => {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
   }, [emailParam]);
+
+  // Demo/dev only: no SMTP is configured, so fetch the code once and show it.
+  React.useEffect(() => {
+    if (!email.trim() || autoFetched.current) return;
+    autoFetched.current = true;
+    authApi
+      .resendOtp(email.trim().toLowerCase())
+      .then((res) => {
+        if (res.demoOtp) {
+          setDemoOtp(res.demoOtp);
+          setOtp(res.demoOtp);
+          setCooldown(RESEND_COOLDOWN_SECONDS);
+        }
+      })
+      .catch(() => {
+        // Ignore — the code still exists from registration; user can use Resend.
+      });
+  }, [email]);
 
   React.useEffect(() => {
     if (cooldown <= 0) return;
@@ -72,12 +92,36 @@ function VerifyEmailInner() {
     setResent(true);
     try {
       const result = await authApi.resendOtp(email.trim().toLowerCase());
+      if (result.demoOtp) {
+        setDemoOtp(result.demoOtp);
+        setOtp(result.demoOtp);
+      }
       toast.success(result.message);
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       toast.error(extractErrorMessage(err));
     } finally {
       setResent(false);
+    }
+  };
+
+  const autoVerify = async () => {
+    if (!email.trim()) {
+      toast.error("Enter the email you registered with");
+      return;
+    }
+    setBusy(true);
+    try {
+      const session = await authApi.verifyDemo(email.trim().toLowerCase());
+      tokenStore.setTokens(session.accessToken, session.refreshToken);
+      dispatch(setCredentials({ user: session.user, accessToken: session.accessToken }));
+      toast.success(`Email verified (demo). Welcome, ${session.user.fullName.split(" ")[0]}!`);
+      router.replace(roleHome(session.user.role));
+      router.refresh();
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -94,6 +138,17 @@ function VerifyEmailInner() {
             expires in 10 minutes.
           </p>
         </div>
+
+        {demoOtp && (
+          <div className="rounded-2xl border border-dashed border-teal-300 bg-teal-50 px-4 py-3 text-center">
+            <p className="text-[11px] font-semibold text-teal-700">
+              Demo mode — email/SMS are not actually delivered. Your code:
+            </p>
+            <p className="font-mono text-3xl font-extrabold tracking-[0.35em] text-teal-800 mt-1">
+              {demoOtp}
+            </p>
+          </div>
+        )}
 
         <form onSubmit={verify} className="space-y-4" noValidate>
           <div className="space-y-1.5">
@@ -152,6 +207,16 @@ function VerifyEmailInner() {
           >
             <RefreshCw className={`w-4 h-4 ${resent ? "animate-spin" : ""}`} />
             {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend Code"}
+          </button>
+
+          <button
+            type="button"
+            onClick={autoVerify}
+            disabled={busy}
+            className="w-full py-2.5 rounded-xl border border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
+          >
+            <Zap className="w-4 h-4 text-amber-500" />
+            Auto-verify (demo) — no email needed
           </button>
         </form>
 

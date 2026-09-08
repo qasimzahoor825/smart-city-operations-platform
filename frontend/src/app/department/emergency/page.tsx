@@ -153,7 +153,7 @@ export default function EmergencyResponseCenterPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-between p-4 sm:p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans flex flex-col justify-between p-4 sm:p-6 space-y-6">
       
       {/* Top Header Bar */}
       <header className="bg-white border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur shadow-sm">

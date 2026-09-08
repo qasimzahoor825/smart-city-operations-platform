@@ -138,7 +138,7 @@ export default function PublicAssetManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans flex">
       
       {/* Left Dark Navy Sidebar matching Screenshot 08 */}
       <aside className="w-64 bg-white text-slate-900 shrink-0 hidden lg:flex flex-col justify-between p-4 border-r border-slate-200">

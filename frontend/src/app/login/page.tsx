@@ -134,19 +134,24 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen overflow-hidden text-slate-900 font-sans flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8">
+      <div className="aurora-blob w-[26rem] h-[26rem] bg-sky-300/25 -top-24 -left-24" />
+      <div className="aurora-blob w-[28rem] h-[28rem] bg-indigo-300/20 top-1/3 -right-32 [animation-delay:-5s]" />
+      <div className="aurora-blob w-96 h-96 bg-teal-300/20 bottom-16 -left-16 [animation-delay:-9s]" />
+
       {/* Top Header Title matching Screenshot 02 */}
-      <div className="text-center max-w-xl mx-auto mb-8 pt-4">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Welcome to SmartCity
+      <div className="relative max-w-xl mx-auto mb-8 pt-4 text-center">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          <span className="text-gradient-animated">Welcome to SmartCity</span>
         </h1>
+        <p className="text-sm text-slate-500 mt-2">Unified citizen, department &amp; operations command center.</p>
       </div>
 
       {/* Main Split Container matching Screenshot 02 */}
-      <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className="relative max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         {/* Left Column: Smart city image like the reference login screen */}
-        <div className="lg:col-span-6 relative min-h-[420px] overflow-hidden rounded-3xl border border-emerald-100 bg-emerald-50 shadow-sm">
+        <div className="lg:col-span-6 relative min-h-[420px] overflow-hidden rounded-3xl ring-1 ring-emerald-100 shadow-xl">
           <Image
             src="/services.jpg"
             alt="Illustrated smart city with transit, government buildings, solar roofs, and connected streets"
@@ -155,6 +160,7 @@ function LoginFormContent() {
             priority
             className="object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/25 via-transparent to-transparent" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent p-6">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">Eco Grid Active</span>
@@ -165,7 +171,7 @@ function LoginFormContent() {
         </div>
 
         {/* Right Column: Login Card matching Screenshot 02 */}
-        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-3xl p-8 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-6 glass-panel rounded-3xl p-8 flex flex-col justify-between">
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900">
               Login to Your Account
@@ -317,7 +323,7 @@ function LoginFormContent() {
 
       </div>
 
-      <footer className="text-center text-xs text-slate-400 pt-8">
+      <footer className="relative text-center text-xs text-slate-400 pt-8">
         (c) 2024 Metropolis Government. SmartCity Operations Platform.
       </footer>
     </div>

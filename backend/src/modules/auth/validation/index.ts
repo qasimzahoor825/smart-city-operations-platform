@@ -23,6 +23,10 @@ export const resendVerificationSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
+export const verifyDemoSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 export const refreshSchema = z.object({
   refreshToken: z.string().min(1, "refreshToken is required"),
 });

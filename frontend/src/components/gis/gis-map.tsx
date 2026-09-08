@@ -14,6 +14,20 @@ import { typeLabel } from "./marker-utils";
 
 const PAKISTAN_CENTER: [number, number] = [33.6844, 73.0479];
 
+// Soft "blueprint" tile used when the online basemap is unreachable (offline
+// demo / flaky network). Keeps the map looking intentional instead of broken.
+const OFFLINE_TILE = [
+  "data:image/svg+xml;utf8,",
+  "<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'>",
+  "<defs><pattern id='g' width='32' height='32' patternUnits='userSpaceOnUse'>",
+  "<path d='M32 0H0V32' fill='none' stroke='%2394a3b8' stroke-opacity='0.28'/>",
+  "<path d='M256 0H0V256' fill='none' stroke='%2394a3b8' stroke-opacity='0.5' stroke-width='1.5'/>",
+  "</pattern></defs>",
+  "<rect width='256' height='256' fill='%23eef2f7'/>",
+  "<rect width='256' height='256' fill='url(%23g)'/>",
+  "</svg>",
+].join("");
+
 function buildTileUrl(mapStyle: "streets" | "satellite"): string {
   let url = MAP_TILE_URL;
   if (mapStyle === "satellite") {
@@ -72,6 +86,7 @@ function GisMap({ markers, mapStyle, focus, onSelect, fitOnLoad }: GisMapProps) 
     tileRef.current = L.tileLayer(buildTileUrl(mapStyle), {
       attribution: MAP_ATTRIBUTION,
       maxZoom: 19,
+      errorTileUrl: OFFLINE_TILE,
     }).addTo(map);
     clusterRef.current = L.markerClusterGroup({
       maxClusterRadius: 46,

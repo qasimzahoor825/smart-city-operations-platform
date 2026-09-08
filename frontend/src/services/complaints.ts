@@ -88,4 +88,9 @@ export const complaintsApi = {
     const { data } = await api.get<ApiResponse<ComplaintStats>>("/complaints/stats");
     return data.data as ComplaintStats;
   },
+
+  async submitFeedback(id: string, payload: { rating: number; comment?: string }): Promise<unknown> {
+    const { data } = await api.post<ApiResponse<unknown>>(`/complaints/${id}/feedback`, payload);
+    return data.data;
+  },
 };

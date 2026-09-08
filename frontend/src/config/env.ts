@@ -8,7 +8,7 @@ const isProd = process.env.NODE_ENV === "production";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? (isProd ? "/api/v1" : "http://localhost:4100/api/v1");
 export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? (isProd ? "/" : "http://localhost:4100");
-export const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? 15000);
+export const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? 8000);
 
 export const AUTH_TOKEN_KEY = process.env.NEXT_PUBLIC_AUTH_TOKEN_KEY ?? "smartcity_access_token";
 export const AUTH_REFRESH_KEY = process.env.NEXT_PUBLIC_AUTH_REFRESH_KEY ?? "smartcity_refresh_token";

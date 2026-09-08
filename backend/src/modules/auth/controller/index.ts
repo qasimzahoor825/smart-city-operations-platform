@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import { authService } from "../service";
 import { asyncHandler, createApiResponse } from "../../../core/utils";
 import { auditService } from "../../audit/service";
+import { ForbiddenError } from "@smartcity/common";
+import { config } from "../../../config";
 
 const sessionContext = (req: Request) => ({
   userAgent: req.headers["user-agent"] ?? undefined,
@@ -141,6 +143,17 @@ export const authController = {
   resendOtp: asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.resendVerificationOtp(req.body?.email ?? "");
     res.json(createApiResponse(true, result.message, result));
+  }),
+
+  // Dev/demo only: instantly verifies an account so the demo can never stall
+  // on email delivery. Always rejected in non-development environments.
+  verifyDemo: asyncHandler(async (req: Request, res: Response) => {
+    if (config.env !== "development" && !config.demoMode) {
+      throw new ForbiddenError("Demo verification is only available in development");
+    }
+    const session = await authService.verifyEmailDemo(req.body?.email ?? "");
+    auditAction("auth.email_verified")(req);
+    res.json(createApiResponse(true, "Email verified (demo). Welcome to SmartCity OS!", session));
   }),
 };
 

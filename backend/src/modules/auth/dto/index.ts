@@ -28,6 +28,8 @@ export interface ResendOtpDto {
 export interface RegisterResult {
   user: PublicUser;
   requiresOtp: boolean;
+  /** Dev/demo only: SMTP is not configured, so the code is returned for review. */
+  demoOtp?: string;
 }
 
 export interface RefreshDto {

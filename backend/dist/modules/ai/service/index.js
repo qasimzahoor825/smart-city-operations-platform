@@ -151,7 +151,7 @@ async function askGemini(system, history, prompt, maxTokens) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
-            signal: AbortSignal.timeout(15_000),
+            signal: AbortSignal.timeout(6_000),
         });
         if (!res.ok)
             return null;
@@ -176,7 +176,7 @@ async function askOpenRouter(system, history, prompt, maxTokens) {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
             body: JSON.stringify({ model: config_1.config.ai.aiModel, messages, max_tokens: maxTokens }),
-            signal: AbortSignal.timeout(20_000),
+            signal: AbortSignal.timeout(6_000),
         });
         if (!res.ok)
             return null;
@@ -188,6 +188,10 @@ async function askOpenRouter(system, history, prompt, maxTokens) {
     }
 }
 async function askModel(system, history, prompt, maxTokens) {
+    // "heuristic" provider = offline-first, deterministic answers. No network
+    // calls at all, so the platform stays instant and reliable without internet.
+    if (config_1.config.ai.provider === "heuristic")
+        return null;
     const primary = config_1.config.ai.provider === "openrouter" ? askOpenRouter : askGemini;
     const fallback = config_1.config.ai.provider === "openrouter" ? askGemini : askOpenRouter;
     const first = await primary(system, history, prompt, maxTokens);
@@ -217,7 +221,7 @@ async function* streamGemini(system, history, prompt, maxTokens) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
-            signal: AbortSignal.timeout(30_000),
+            signal: AbortSignal.timeout(8_000),
         });
         if (!res.ok || !res.body)
             return;
@@ -274,7 +278,7 @@ async function* streamOpenRouter(system, history, prompt, maxTokens) {
                 max_tokens: maxTokens,
                 stream: true,
             }),
-            signal: AbortSignal.timeout(30_000),
+            signal: AbortSignal.timeout(8_000),
         });
         if (!res.ok || !res.body)
             return;
@@ -310,6 +314,10 @@ async function* streamOpenRouter(system, history, prompt, maxTokens) {
     catch {
         // network error — stream just ends
     }
+}
+/** Offline-first provider: emits nothing so the deterministic data answer is used. */
+async function* streamNothing() {
+    yield* [];
 }
 // ---------------------------------------------------------------------------
 // Complaint triage — AI first, deterministic fallback.
@@ -402,14 +410,16 @@ exports.aiService = {
     },
     async *chatStream(dto, user) {
         const dataAnswer = (0, data_1.answerWithData)(dto, user);
-        const primary = config_1.config.ai.provider === "openrouter"
-            ? config_1.config.ai.openRouterApiKey
-                ? streamOpenRouter
-                : streamGemini
-            : config_1.config.ai.geminiApiKey
-                ? streamGemini
-                : streamOpenRouter;
-        const source = primary === streamOpenRouter ? "openrouter" : "gemini";
+        const primary = config_1.config.ai.provider === "heuristic"
+            ? streamNothing
+            : config_1.config.ai.provider === "openrouter"
+                ? config_1.config.ai.openRouterApiKey
+                    ? streamOpenRouter
+                    : streamGemini
+                : config_1.config.ai.geminiApiKey
+                    ? streamGemini
+                    : streamOpenRouter;
+        const source = config_1.config.ai.provider === "heuristic" ? "heuristic" : primary === streamOpenRouter ? "openrouter" : "gemini";
         yield { type: "meta", intent: dataAnswer.intent, suggestions: dataAnswer.suggestions ?? [], source };
         const system = [
             "You are SmartCity Assist, the friendly AI assistant for the Enterprise Smart City Operating System.",
@@ -467,7 +477,7 @@ exports.aiService = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
-                signal: AbortSignal.timeout(30_000),
+                signal: AbortSignal.timeout(8_000),
             });
             if (!res.ok) {
                 return { accepted: true, reason: "Vision service unavailable; proceeding.", source: "heuristic" };

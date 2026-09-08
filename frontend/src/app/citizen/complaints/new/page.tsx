@@ -165,7 +165,7 @@ export default function SubmitComplaintPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 sm:p-6 lg:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans p-4 sm:p-6 lg:p-10">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header Breadcrumb & Title matching Screenshot 04 */}

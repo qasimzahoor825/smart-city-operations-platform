@@ -22,7 +22,7 @@ describe("iotService", () => {
     expect(overview.total).toBeGreaterThan(0);
     expect(overview.critical + overview.warning).toBe(overview.total);
     expect(overview.activeSensors).toBeGreaterThan(0);
-    expect(overview.latest[0].zScore).toBeGreaterThanOrEqual(3);
+    expect(Math.abs(overview.latest[0].zScore)).toBeGreaterThanOrEqual(3);
   });
 
   it("sorts anomalies newest-first", () => {

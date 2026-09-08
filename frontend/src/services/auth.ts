@@ -26,6 +26,7 @@ export interface RegisterPayload {
 export interface RegisterResult {
   user: AuthUser;
   requiresOtp: boolean;
+  demoOtp?: string;
 }
 
 export interface LoginPayload {
@@ -50,9 +51,14 @@ export const authApi = {
     return data.data as AuthSession;
   },
 
-  async resendOtp(email: string): Promise<{ message: string }> {
-    const { data } = await api.post<ApiResponse<{ message: string }>>("/auth/resend-otp", { email });
-    return data.data as { message: string };
+  async verifyDemo(email: string): Promise<AuthSession> {
+    const { data } = await api.post<ApiResponse<AuthSession>>("/auth/verify-demo", { email });
+    return data.data as AuthSession;
+  },
+
+  async resendOtp(email: string): Promise<{ message: string; demoOtp?: string }> {
+    const { data } = await api.post<ApiResponse<{ message: string; demoOtp?: string }>>("/auth/resend-otp", { email });
+    return data.data as { message: string; demoOtp?: string };
   },
 
   async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {

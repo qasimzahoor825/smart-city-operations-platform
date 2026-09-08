@@ -12,6 +12,7 @@ const repository_1 = require("../repository");
 const jwt_1 = require("../../../lib/jwt/jwt");
 const mailer_1 = require("../../../lib/mailer");
 const sms_1 = require("../../../lib/sms");
+const email_validation_1 = require("../../../lib/email-validation");
 const config_1 = require("../../../config");
 const OTP_TTL_MS = 10 * 60_000;
 function generateOtp(seed) {
@@ -25,7 +26,7 @@ function generateOtp(seed) {
     return String(crypto_1.default.randomInt(100000, 1000000));
 }
 const hashOtp = (otp) => crypto_1.default.createHash("sha256").update(otp).digest("hex");
-/** Returns a fresh, unused OTP record for the user (creating + emailing it). */
+/** Returns the fresh, unused OTP record for the user (creating + emailing it). */
 async function sendVerificationOtp(user) {
     const now = new Date();
     repository_1.authRepository.emailVerifications
@@ -45,12 +46,19 @@ async function sendVerificationOtp(user) {
     if (user.phoneNumber) {
         await (0, sms_1.sendSmsOtp)(user.phoneNumber, otp);
     }
+    return otp;
 }
 exports.authService = {
     async register(dto, _meta) {
         const email = dto.email.trim().toLowerCase();
         if (repository_1.authRepository.findByEmail(email)) {
             throw new common_2.ConflictError("An account with this email already exists");
+        }
+        // Abstract API deliverability gate (see flowchart): reject dead/suspect
+        // addresses before we generate or send any OTP. Skipped when no key/offline.
+        const validation = await (0, email_validation_1.validateEmail)(email);
+        if (validation.available && !validation.pass) {
+            throw new common_2.AppError(`We couldn't verify this email address (deliverability: ${validation.detail}). Please use a deliverable address and try again.`, 400);
         }
         const passwordHash = await bcryptjs_1.default.hash(dto.password, 12);
         const role = dto.role ?? common_1.UserRole.CITIZEN;
@@ -67,8 +75,13 @@ exports.authService = {
             createdAt: now,
             updatedAt: now,
         });
-        await sendVerificationOtp(user);
-        return { user: repository_1.authRepository.toPublic(user), requiresOtp: true };
+        const otp = await sendVerificationOtp(user);
+        return {
+            user: repository_1.authRepository.toPublic(user),
+            requiresOtp: true,
+            // Demo/dev only: SMTP is not configured, so surface the code for review.
+            demoOtp: config_1.config.env === "development" || config_1.config.demoMode ? otp : undefined,
+        };
     },
     async login(dto, meta) {
         const email = dto.email.trim().toLowerCase();
@@ -87,6 +100,20 @@ exports.authService = {
         const publicUser = repository_1.authRepository.toPublic(user);
         return this.issueSession(publicUser, meta);
     },
+    async verifyEmailDemo(emailRaw) {
+        const email = emailRaw.trim().toLowerCase();
+        const user = repository_1.authRepository.findByEmail(email);
+        if (!user || !user.isActive)
+            throw new common_2.UnauthorizedError("Invalid account");
+        if (!user.isEmailVerified) {
+            repository_1.authRepository.users.update(user.id, {
+                isEmailVerified: true,
+                updatedAt: new Date().toISOString(),
+            });
+        }
+        const verified = repository_1.authRepository.findByEmail(email);
+        return this.issueSession(repository_1.authRepository.toPublic(verified), {});
+    },
     async resendVerificationOtp(emailRaw) {
         const email = emailRaw.trim().toLowerCase();
         const user = repository_1.authRepository.findByEmail(email);
@@ -96,8 +123,11 @@ exports.authService = {
         if (user.isEmailVerified) {
             return { message: "Your email is already verified. You can sign in now." };
         }
-        await sendVerificationOtp(user);
-        return { message: "A new verification code has been sent to your email." };
+        const otp = await sendVerificationOtp(user);
+        return {
+            message: "A new verification code has been sent to your email.",
+            demoOtp: config_1.config.env === "development" || config_1.config.demoMode ? otp : undefined,
+        };
     },
     async verifyEmailOtp(emailRaw, otp, meta) {
         const email = emailRaw.trim().toLowerCase();

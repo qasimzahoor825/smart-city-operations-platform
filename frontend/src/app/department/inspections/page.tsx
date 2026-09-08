@@ -16,8 +16,16 @@ export default function DepartmentInspectionsPage() {
     (a) => !search || a.name.toLowerCase().includes(search.toLowerCase()) || a.category.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const scheduleInspection = (a: Asset) => {
-    toast.success(`Inspection scheduled for ${a.name}`);
+  const scheduleInspection = async (a: Asset) => {
+    try {
+      await assetsApi.recordInspection(a.id, {
+        status: a.status === "OPERATIONAL" ? "OPERATIONAL" : "UNDER_MAINTENANCE",
+        findings: `Routine inspection scheduled for ${a.name}`,
+      });
+      toast.success(`Inspection scheduled for ${a.name}`);
+    } catch {
+      toast.error(`Could not schedule inspection for ${a.name}`);
+    }
   };
 
   return (

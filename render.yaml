@@ -1,28 +1,41 @@
-# Render Blueprint — deploy the SmartCity OS backend monolith in one click.
-# In Render: "New" → "Blueprint" → connect the GitHub repo → apply.
-# The web app itself deploys on Vercel (frontend/, Next.js).
+# Render Blueprint — SmartCity OS Backend (monolith)
+# Deploy: https://dashboard.render.com/blueprints (connect GitHub repo qasimzahoor825/smart-city-operations-platform)
 services:
   - type: web
-    name: smartcity-backend
+    name: smartcity-os-backend
     runtime: node
-    repo: https://github.com/qasimzahoor825/smart-city-operations-platform
     plan: free
-    installCommand: npm install
-    buildCommand: npm run build:packages && npm run db:generate --prefix packages/database && npm run build --prefix packages/database && npm run build --prefix backend
+    rootDir: /
+    buildCommand: npm run renderbuild
     startCommand: npm run start:monolith
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DEMO_MODE
+        value: "true" # on-screen OTP + auto-verify enabled (email/SMS not required)
       - key: PORT
-        value: 10000
-      - key: CORS_ORIGIN
-        value: "*"
-      - key: EMAIL_TRANSPORT
-        value: mock-console
+        value: 4100
+      - key: MONGODB_URI # optional — leave unset to run on in-memory demo data
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: REFRESH_SECRET
         generateValue: true
-      # Optional persistence: set MONGODB_URI to a MongoDB Atlas URI.
-      # Without it the monolith boots with seeded in-memory repositories
-      # (data resets on each deploy/restart — fine for a demo).
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: CLIENT_URL
+        value: "http://localhost:3000"
+      - key: AI_PROVIDER
+        value: heuristic
+      - key: EMAIL_TRANSPORT
+        value: mock-console # switch to smtp + SMTP_USER/SMTP_PASS for real OTP email
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: ABSTRACT_API_KEY # optional email deliverability check
+        sync: false

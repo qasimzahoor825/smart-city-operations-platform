@@ -12,6 +12,7 @@ import {
   resendVerificationSchema,
   resetPasswordSchema,
   updateProfileSchema,
+  verifyDemoSchema,
   verifyEmailSchema,
 } from "../validation";
 
@@ -24,6 +25,7 @@ authRouter.post("/logout", authController.logout);
 authRouter.post("/forgot-password", authLimiter, validateBody(forgotPasswordSchema), authController.forgotPassword);
 authRouter.post("/reset-password", authLimiter, validateBody(resetPasswordSchema), authController.resetPassword);
 authRouter.post("/verify-email", authLimiter, validateBody(verifyEmailSchema), authController.verifyEmail);
+authRouter.post("/verify-demo", authLimiter, validateBody(verifyDemoSchema), authController.verifyDemo);
 authRouter.post("/resend-otp", authLimiter, validateBody(resendVerificationSchema), authController.resendOtp);
 
 authRouter.get("/me", requireAuth, authController.me);

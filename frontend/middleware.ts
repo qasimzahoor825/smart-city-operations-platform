@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/services/token-storage";
 
-const PUBLIC_PATHS = ["/", "/about", "/contact", "/services", "/news", "/emergency"];
+const PUBLIC_PATHS = ["/", "/about", "/contact", "/services", "/news"];
 const AUTH_PATHS = ["/login", "/register", "/auth/forgot-password", "/auth/reset-password"];
 
 export function middleware(request: NextRequest) {
@@ -15,6 +15,8 @@ export function middleware(request: NextRequest) {
     "/citizen",
     "/department",
     "/admin",
+    "/emergency",
+    "/officer",
   ].some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   // Skip for anything not protected or auth-related, and static assets/API.

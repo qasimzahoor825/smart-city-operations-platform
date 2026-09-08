@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfileSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.changePasswordSchema = exports.refreshSchema = exports.resendVerificationSchema = exports.verifyEmailSchema = exports.registerSchema = exports.loginSchema = void 0;
+exports.updateProfileSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.changePasswordSchema = exports.refreshSchema = exports.verifyDemoSchema = exports.resendVerificationSchema = exports.verifyEmailSchema = exports.registerSchema = exports.loginSchema = void 0;
 const zod_1 = require("zod");
 exports.loginSchema = zod_1.z.object({
     email: zod_1.z.string().email("Invalid email address"),
@@ -19,6 +19,9 @@ exports.verifyEmailSchema = zod_1.z.object({
     otp: zod_1.z.string().min(4, "OTP is required").regex(/^\d{4,8}$/, "OTP must be numeric"),
 });
 exports.resendVerificationSchema = zod_1.z.object({
+    email: zod_1.z.string().email("Invalid email address"),
+});
+exports.verifyDemoSchema = zod_1.z.object({
     email: zod_1.z.string().email("Invalid email address"),
 });
 exports.refreshSchema = zod_1.z.object({

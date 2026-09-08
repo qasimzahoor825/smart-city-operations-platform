@@ -24,6 +24,11 @@ const sla_1 = require("../modules/sla");
 const iot_1 = require("../modules/iot");
 const PREFIX = config_1.config.apiPrefix;
 function mountRoutes(app) {
+    // Health route is registered BEFORE the legacy bare IoT mount so it is not
+    // shadowed by the IoT router's `requireAuth` middleware.
+    app.get(`${PREFIX}/health`, (_req, res) => {
+        res.json({ success: true, status: "UP", service: "SmartCity OS Monolith", timestamp: new Date().toISOString() });
+    });
     app.use(`${PREFIX}/auth`, auth_1.authRouter);
     app.use(`${PREFIX}/users`, users_1.userRouter);
     app.use(`${PREFIX}/roles`, roles_1.roleRouter);
@@ -48,8 +53,5 @@ function mountRoutes(app) {
     // Compatibility aliases: legacy clients call /readings, /sensors, /anomalies, /ingest
     // directly under the v1 root (microservice era paths).
     app.use(PREFIX, iot_1.iotRouter);
-    app.get(`${PREFIX}/health`, (_req, res) => {
-        res.json({ success: true, status: "UP", service: "SmartCity OS Monolith", timestamp: new Date().toISOString() });
-    });
 }
 //# sourceMappingURL=routes.js.map

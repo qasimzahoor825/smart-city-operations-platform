@@ -102,6 +102,10 @@ export const assetsApi = {
     const { data } = await api.patch<ApiResponse<Asset>>(`/assets/${id}/status`, { status });
     return data.data as Asset;
   },
+  async recordInspection(id: string, payload: { status: string; findings: string }): Promise<unknown> {
+    const { data } = await api.post<ApiResponse<unknown>>(`/assets/${id}/inspections`, payload);
+    return data.data;
+  },
 };
 
 // ---------- Emergencies ----------
@@ -139,11 +143,11 @@ export const appointmentsApi = {
 // ---------- Platform Settings (admin) ----------
 export const systemApi = {
   async get(): Promise<Record<string, boolean>> {
-    const { data } = await api.get<ApiResponse<Record<string, boolean>>>("/settings");
+    const { data } = await api.get<ApiResponse<Record<string, boolean>>>("/system/settings");
     return data.data ?? {};
   },
   async update(patch: Record<string, boolean>): Promise<Record<string, boolean>> {
-    const { data } = await api.put<ApiResponse<Record<string, boolean>>>("/settings", patch);
+    const { data } = await api.put<ApiResponse<Record<string, boolean>>>("/system/settings", patch);
     return data.data ?? {};
   },
 };

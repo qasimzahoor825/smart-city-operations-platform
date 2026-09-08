@@ -40,6 +40,9 @@ export default function ComplaintDetailsPage({ params }: ComplaintDetailsProps) 
   const [loading, setLoading] = React.useState(true);
   const [activePhoto, setActivePhoto] = React.useState<string | null>(null);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
+  const [feedbackRating, setFeedbackRating] = React.useState(5);
+  const [feedbackComment, setFeedbackComment] = React.useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = React.useState(false);
   const [contactOpen, setContactOpen] = React.useState(false);
 
   const load = React.useCallback(() => {
@@ -99,7 +102,7 @@ export default function ComplaintDetailsPage({ params }: ComplaintDetailsProps) 
       : "text-red-800";
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 sm:p-6 lg:p-10 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans p-4 sm:p-6 lg:p-10 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Top Header Title matching Screenshot 05 */}
@@ -389,8 +392,13 @@ export default function ComplaintDetailsPage({ params }: ComplaintDetailsProps) 
 
               <button
                 onClick={() => {
+                  if (complaint?.status !== "RESOLVED" && complaint?.status !== "CLOSED") {
+                    toast.info("Feedback is available once this complaint is resolved.");
+                    return;
+                  }
+                  setFeedbackRating(5);
+                  setFeedbackComment("");
                   setFeedbackOpen(true);
-                  toast.success("Feedback dialog opened");
                 }}
                 className="w-full py-3 rounded-xl smart-btn-teal text-xs font-semibold shadow flex items-center justify-center gap-2"
               >
@@ -431,21 +439,50 @@ export default function ComplaintDetailsPage({ params }: ComplaintDetailsProps) 
               <h3 className="font-bold text-slate-900">Provide Resolution Feedback</h3>
               <button onClick={() => setFeedbackOpen(false)} aria-label="Close dialog"><X className="w-4 h-4 text-slate-400" /></button>
             </div>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                  onClick={() => setFeedbackRating(n)}
+                  className={`w-8 h-8 rounded-lg text-sm font-bold transition ${
+                    n <= feedbackRating ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
             <textarea
               rows={3}
-              placeholder="Leave feedback on officer response time..."
+              value={feedbackComment}
+              onChange={(e) => setFeedbackComment(e.target.value)}
+              placeholder={`Rate ${feedbackRating}/5 and leave feedback on officer response time...`}
               className="w-full border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
             />
             <div className="flex justify-end gap-2">
               <button onClick={() => setFeedbackOpen(false)} className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-300">Cancel</button>
               <button
-                onClick={() => {
-                  setFeedbackOpen(false);
-                  toast.success("Feedback submitted!");
+                disabled={feedbackSubmitting}
+                onClick={async () => {
+                  setFeedbackSubmitting(true);
+                  try {
+                    await complaintsApi.submitFeedback(ticketId, {
+                      rating: feedbackRating,
+                      comment: feedbackComment || undefined,
+                    });
+                    setFeedbackOpen(false);
+                    toast.success("Feedback submitted!");
+                  } catch {
+                    toast.error("Could not submit feedback");
+                  } finally {
+                    setFeedbackSubmitting(false);
+                  }
                 }}
-                className="px-4 py-2 rounded-lg text-xs font-semibold smart-btn-teal"
+                className="px-4 py-2 rounded-lg text-xs font-semibold smart-btn-teal disabled:opacity-60"
               >
-                Submit Feedback
+                {feedbackSubmitting ? "Submitting…" : "Submit Feedback"}
               </button>
             </div>
           </div>

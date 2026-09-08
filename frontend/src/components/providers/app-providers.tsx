@@ -6,12 +6,14 @@ import { Toaster } from "sonner";
 import { store } from "@/store";
 import { queryClient } from "@/lib/query";
 import { AuthBootstrap } from "@/components/providers/auth-bootstrap";
+import { TopProgress } from "@/components/layout/TopProgress";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <AuthBootstrap />
+        <TopProgress />
         <Toaster
           position="top-right"
           theme="dark"

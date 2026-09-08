@@ -79,7 +79,7 @@ export default function CitizenDashboardPage() {
   const fullName = user?.fullName ?? "Citizen";
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans flex flex-col">
       
       {/* Top Bar matching Screenshot 03 */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

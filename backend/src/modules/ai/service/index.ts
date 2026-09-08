@@ -171,7 +171,7 @@ async function askGemini(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(6_000),
     });
     if (!res.ok) return null;
     const payload = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
@@ -200,7 +200,7 @@ async function askOpenRouter(
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({ model: config.ai.aiModel, messages, max_tokens: maxTokens }),
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(6_000),
     });
     if (!res.ok) return null;
     const payload = (await res.json()) as { choices?: { message?: { content?: string } }[] };
@@ -216,6 +216,9 @@ async function askModel(
   prompt: string,
   maxTokens: number,
 ): Promise<string | null> {
+  // "heuristic" provider = offline-first, deterministic answers. No network
+  // calls at all, so the platform stays instant and reliable without internet.
+  if (config.ai.provider === "heuristic") return null;
   const primary = config.ai.provider === "openrouter" ? askOpenRouter : askGemini;
   const fallback = config.ai.provider === "openrouter" ? askGemini : askOpenRouter;
   const first = await primary(system, history, prompt, maxTokens);
@@ -252,7 +255,7 @@ async function* streamGemini(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok || !res.body) return;
     const reader = res.body.getReader();
@@ -309,7 +312,7 @@ async function* streamOpenRouter(
         max_tokens: maxTokens,
         stream: true,
       }),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok || !res.body) return;
     const reader = res.body.getReader();
@@ -344,6 +347,11 @@ type ChatStreamMessage =
   | { type: "meta"; intent?: string; suggestions?: string[]; source: string }
   | { type: "delta"; text: string }
   | { type: "done" };
+
+/** Offline-first provider: emits nothing so the deterministic data answer is used. */
+async function* streamNothing(): AsyncGenerator<string> {
+  yield* [];
+}
 
 // ---------------------------------------------------------------------------
 // Complaint triage — AI first, deterministic fallback.
@@ -443,14 +451,16 @@ export const aiService = {
   async *chatStream(dto: ChatDto, user?: AuthenticatedUser): AsyncGenerator<ChatStreamMessage> {
     const dataAnswer = answerWithData(dto, user);
     const primary =
-      config.ai.provider === "openrouter"
-        ? config.ai.openRouterApiKey
-          ? streamOpenRouter
-          : streamGemini
-        : config.ai.geminiApiKey
-          ? streamGemini
-          : streamOpenRouter;
-    const source = primary === streamOpenRouter ? "openrouter" : "gemini";
+      config.ai.provider === "heuristic"
+        ? streamNothing
+        : config.ai.provider === "openrouter"
+          ? config.ai.openRouterApiKey
+            ? streamOpenRouter
+            : streamGemini
+          : config.ai.geminiApiKey
+            ? streamGemini
+            : streamOpenRouter;
+    const source = config.ai.provider === "heuristic" ? "heuristic" : primary === streamOpenRouter ? "openrouter" : "gemini";
     yield { type: "meta", intent: dataAnswer.intent, suggestions: dataAnswer.suggestions ?? [], source };
 
     const system =
@@ -516,7 +526,7 @@ export const aiService = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(8_000),
       });
       if (!res.ok) {
         return { accepted: true, reason: "Vision service unavailable; proceeding.", source: "heuristic" };

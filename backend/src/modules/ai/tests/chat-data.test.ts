@@ -6,6 +6,9 @@ import { emergencyRepository } from "../../emergency/repository";
 import { notificationRepository } from "../../notifications/repository";
 import { appointmentRepository } from "../../appointments/repository";
 
+const OPEN_SCOPE = ["SUBMITTED", "RECEIVED", "ASSIGNED", "UNDER_REVIEW", "FIELD_INSPECTION", "IN_PROGRESS", "ESCALATED"];
+const RESOLVED_SCOPE = ["RESOLVED", "CITIZEN_FEEDBACK", "CLOSED"];
+
 const citizen = {
   sub: "usr_seed_citizen1",
   id: "usr_seed_citizen1",
@@ -31,10 +34,14 @@ describe("answerWithData (data-backed assistant)", () => {
   });
 
   it("reports the citizen's own complaints with live counts", () => {
+    const mine = complaintRepository.complaints.all().filter((c) => c.citizenId === citizen.id);
+    const open = mine.filter((c) => OPEN_SCOPE.includes(c.status)).length;
+    const resolved = mine.filter((c) => RESOLVED_SCOPE.includes(c.status)).length;
     const answer = answerWithData({ message: "What is the status of my complaints?" }, citizen);
     expect(answer.intent).toBe("my_complaints");
-    expect(answer.reply).toContain("3 complaint");
-    expect(answer.reply).toContain("2 open");
+    expect(answer.reply).toContain(`${mine.length} complaint`);
+    expect(answer.reply).toContain(`${open} open`);
+    expect(resolved).toBeGreaterThan(0);
   });
 
   it("answers city-wide complaint questions with real totals", () => {

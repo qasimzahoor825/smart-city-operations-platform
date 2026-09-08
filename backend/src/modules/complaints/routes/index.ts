@@ -15,10 +15,12 @@ import {
 
 export const complaintRouter = Router();
 
+// Aggregate counts exposed publicly for the landing page (no citizen-specific data).
+complaintRouter.get("/stats", complaintController.stats);
+
 complaintRouter.use(requireAuth);
 
 complaintRouter.get("/", complaintController.list);
-complaintRouter.get("/stats", complaintController.stats);
 complaintRouter.post(
   "/",
   auditAction("complaint.created", "complaint"),

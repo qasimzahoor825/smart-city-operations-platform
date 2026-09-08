@@ -35,11 +35,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-lg shadow-blue-500/25 border border-blue-400/20",
+        "bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-[length:150%_100%] bg-[position:0%_0%] hover:bg-[position:100%_0%] text-white shadow-lg shadow-blue-500/30 border border-blue-400/30 transition-[background-position,transform,box-shadow,color] duration-300",
       secondary:
         "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 shadow-sm",
       outline:
-        "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400",
+        "bg-white/80 hover:bg-white text-slate-700 border border-slate-300 hover:border-slate-400 backdrop-blur-sm",
       ghost: "bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900",
       destructive:
         "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-500/25 border border-red-400/20",

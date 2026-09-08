@@ -7,11 +7,11 @@ export const paymentsApi = {
     return data.data ?? [];
   },
   async listTransactions(userId?: string): Promise<PaymentTransaction[]> {
-    const { data } = await api.get<ApiResponse<PaymentTransaction[]>>("/transactions", { params: { userId } });
+    const { data } = await api.get<ApiResponse<PaymentTransaction[]>>("/bills/transactions", { params: { userId } });
     return data.data ?? [];
   },
   async pay(payload: { billId: string; method?: string }): Promise<PaymentTransaction> {
-    const { data } = await api.post<ApiResponse<PaymentTransaction>>("/pay", payload);
+    const { data } = await api.post<ApiResponse<PaymentTransaction>>("/bills/pay", payload);
     return data.data as PaymentTransaction;
   },
   async summary(userId?: string): Promise<{ totalPaid: number; count: number; currency: string }> {

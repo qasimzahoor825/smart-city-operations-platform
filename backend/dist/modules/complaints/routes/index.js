@@ -9,9 +9,10 @@ const audit_1 = require("../../../middleware/audit");
 const validate_1 = require("../../../middleware/validate");
 const validation_1 = require("../validation");
 exports.complaintRouter = (0, express_1.Router)();
+// Aggregate counts exposed publicly for the landing page (no citizen-specific data).
+exports.complaintRouter.get("/stats", controller_1.complaintController.stats);
 exports.complaintRouter.use(auth_1.requireAuth);
 exports.complaintRouter.get("/", controller_1.complaintController.list);
-exports.complaintRouter.get("/stats", controller_1.complaintController.stats);
 exports.complaintRouter.post("/", (0, audit_1.auditAction)("complaint.created", "complaint"), (0, validate_1.validateBody)(validation_1.createComplaintSchema), controller_1.complaintController.create);
 exports.complaintRouter.get("/:id", controller_1.complaintController.getById);
 exports.complaintRouter.patch("/:id", (0, audit_1.auditAction)("complaint.updated", "complaint"), (0, validate_1.validateBody)(validation_1.updateComplaintSchema), controller_1.complaintController.update);

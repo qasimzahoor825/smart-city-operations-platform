@@ -1,6 +1,7 @@
 import { Router, type RequestHandler } from "express";
 import { reportController } from "../controller";
-import { requireAuth } from "../../../middleware/auth";
+import { requireAuth, requireRole } from "../../../middleware/auth";
+import { UserRole } from "@smartcity/common";
 import { validateQuery } from "../../../middleware/validate";
 import { exportReportQuerySchema } from "../validation";
 
@@ -10,6 +11,8 @@ export const reportRouter = Router();
 reportRouter.get("/public/overview", reportController.overview);
 
 reportRouter.use(requireAuth);
+// Detailed reports are only for department heads & super admins.
+reportRouter.use(requireRole(UserRole.SUPER_ADMIN, UserRole.DEPARTMENT_HEAD));
 
 reportRouter.get("/overview", reportController.overview);
 reportRouter.get("/analytics", reportController.analytics);

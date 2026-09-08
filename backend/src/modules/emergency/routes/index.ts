@@ -8,10 +8,12 @@ import { createEmergencySchema, dispatchEmergencySchema } from "../validation";
 
 export const emergencyRouter = Router();
 
+// Aggregate counts exposed publicly for the landing page (no sensitive data).
+emergencyRouter.get("/stats", emergencyController.stats);
+
 emergencyRouter.use(requireAuth);
 
 emergencyRouter.get("/", emergencyController.list);
-emergencyRouter.get("/stats", emergencyController.stats);
 emergencyRouter.post(
   "/",
   auditAction("emergency.created", "emergency"),

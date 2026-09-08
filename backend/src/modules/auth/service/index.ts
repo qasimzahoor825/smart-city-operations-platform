@@ -7,6 +7,7 @@ import type { AuthSession, LoginDto, RegisterDto, UpdateProfileDto, PublicUser, 
 import { signAccessToken, signRefreshToken, ttlSeconds } from "../../../lib/jwt/jwt";
 import { mailer } from "../../../lib/mailer";
 import { sendSmsOtp } from "../../../lib/sms";
+import { validateEmail } from "../../../lib/email-validation";
 import { config } from "../../../config";
 
 const OTP_TTL_MS = 10 * 60_000;
@@ -24,8 +25,8 @@ function generateOtp(seed?: string): string {
 
 const hashOtp = (otp: string) => crypto.createHash("sha256").update(otp).digest("hex");
 
-/** Returns a fresh, unused OTP record for the user (creating + emailing it). */
-async function sendVerificationOtp(user: StoredUser): Promise<void> {
+/** Returns the fresh, unused OTP record for the user (creating + emailing it). */
+async function sendVerificationOtp(user: StoredUser): Promise<string> {
   const now = new Date();
   authRepository.emailVerifications
     .all()
@@ -48,6 +49,7 @@ async function sendVerificationOtp(user: StoredUser): Promise<void> {
   if (user.phoneNumber) {
     await sendSmsOtp(user.phoneNumber, otp);
   }
+  return otp;
 }
 
 export const authService = {
@@ -56,6 +58,17 @@ export const authService = {
     if (authRepository.findByEmail(email)) {
       throw new ConflictError("An account with this email already exists");
     }
+
+    // Abstract API deliverability gate (see flowchart): reject dead/suspect
+    // addresses before we generate or send any OTP. Skipped when no key/offline.
+    const validation = await validateEmail(email);
+    if (validation.available && !validation.pass) {
+      throw new AppError(
+        `We couldn't verify this email address (deliverability: ${validation.detail}). Please use a deliverable address and try again.`,
+        400,
+      );
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const role = dto.role ?? UserRole.CITIZEN;
     const now = new Date().toISOString();
@@ -72,8 +85,13 @@ export const authService = {
       updatedAt: now,
     } as unknown as StoredUser);
 
-    await sendVerificationOtp(user);
-    return { user: authRepository.toPublic(user), requiresOtp: true };
+    const otp = await sendVerificationOtp(user);
+    return {
+      user: authRepository.toPublic(user),
+      requiresOtp: true,
+      // Demo/dev only: SMTP is not configured, so surface the code for review.
+      demoOtp: config.env === "development" || config.demoMode ? otp : undefined,
+    };
   },
 
   async login(dto: LoginDto, meta: { userAgent?: string; ip?: string }): Promise<AuthSession> {
@@ -96,7 +114,21 @@ export const authService = {
     return this.issueSession(publicUser, meta);
   },
 
-  async resendVerificationOtp(emailRaw: string): Promise<{ message: string }> {
+  async verifyEmailDemo(emailRaw: string): Promise<AuthSession> {
+    const email = emailRaw.trim().toLowerCase();
+    const user = authRepository.findByEmail(email);
+    if (!user || !user.isActive) throw new UnauthorizedError("Invalid account");
+    if (!user.isEmailVerified) {
+      authRepository.users.update(user.id, {
+        isEmailVerified: true,
+        updatedAt: new Date().toISOString(),
+      } as Partial<StoredUser>);
+    }
+    const verified = authRepository.findByEmail(email) as StoredUser;
+    return this.issueSession(authRepository.toPublic(verified), {});
+  },
+
+  async resendVerificationOtp(emailRaw: string): Promise<{ message: string; demoOtp?: string }> {
     const email = emailRaw.trim().toLowerCase();
     const user = authRepository.findByEmail(email);
     if (!user) {
@@ -105,8 +137,11 @@ export const authService = {
     if (user.isEmailVerified) {
       return { message: "Your email is already verified. You can sign in now." };
     }
-    await sendVerificationOtp(user);
-    return { message: "A new verification code has been sent to your email." };
+    const otp = await sendVerificationOtp(user);
+    return {
+      message: "A new verification code has been sent to your email.",
+      demoOtp: config.env === "development" || config.demoMode ? otp : undefined,
+    };
   },
 
   async verifyEmailOtp(

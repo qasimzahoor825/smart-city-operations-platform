@@ -4,6 +4,9 @@
   "private": true,
   "description": "Unified Enterprise Smart City Platform - Microservices & Frontend Workspace",
   "scripts": {
+    "predev": "node scripts/free-ports.cjs",
+    "predev:frontend": "node scripts/free-ports.cjs",
+    "predev:monolith": "node scripts/free-ports.cjs",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:monolith": "npm run dev --prefix backend",
     "dev:gateway": "npm run dev --prefix backend/services/api-gateway",
@@ -17,6 +20,8 @@
     "dev:services": "concurrently -n gateway,auth,complaints,dept,payments,gis,iot,notify -c blue,green,magenta,cyan,yellow,red,white,blue \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:complaints\" \"npm:dev:department\" \"npm:dev:payments\" \"npm:dev:gis\" \"npm:dev:iot\" \"npm:dev:notifications\"",
     "dev:all": "concurrently -n frontend,backend \"npm:dev:frontend\" \"npm:dev:services\"",
     "dev": "concurrently -n frontend,api -c cyan,magenta \"npm:dev:frontend\" \"npm:dev:monolith\"",
+    "renderbuild": "npm run build --prefix packages/common && npm run build --prefix packages/shared && npm run build --prefix packages/database && npm run build --prefix backend && npm run db:generate --prefix packages/database",
+    "postinstall": "npm run build --prefix packages/common && npm run build --prefix packages/shared",
     "start:monolith": "npm run start --prefix backend",
     "start:frontend": "npm run start --prefix frontend",
     "build:frontend": "npm run build --prefix frontend",

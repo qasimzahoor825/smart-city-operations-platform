@@ -128,7 +128,7 @@ export default function DepartmentGISPage() {
   const info = selected ?? (filtered[0] ?? null);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/60 text-slate-900 font-sans">
       <header className="h-14 bg-white text-slate-900 border-b border-slate-200 flex items-center justify-between px-5 shadow">
         <Link href="/" className="flex items-center gap-3 font-extrabold text-lg">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-600">

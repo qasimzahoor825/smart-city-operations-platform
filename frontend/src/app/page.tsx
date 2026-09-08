@@ -33,8 +33,9 @@ import {
   Send,
   Satellite,
 } from "lucide-react";
-import { reportsApi, emergenciesApi } from "@/services/operations";
+import { emergenciesApi } from "@/services/operations";
 import { complaintsApi } from "@/services/complaints";
+import { publicGet, type PublicOverview } from "@/services/public-api";
 
 interface LiveStats {
   complaints: number;
@@ -122,7 +123,7 @@ export default function SmartCityHomePage() {
   const refreshLiveStats = React.useCallback(async () => {
     try {
       const [overview, stats, emergencyStats] = await Promise.all([
-        reportsApi.overview(),
+        publicGet<PublicOverview>("/reports/public/overview"),
         complaintsApi.stats(),
         emergenciesApi.stats(),
       ]);
@@ -135,10 +136,10 @@ export default function SmartCityHomePage() {
         activeEmergencies = (emergencyStats as { active?: number }).active ?? 0;
       }
       setLive({
-        complaints: overview.complaints ?? 0,
+        complaints: overview?.complaints ?? 0,
         resolved: stats.resolved ?? 0,
-        departments: overview.departments ?? 0,
-        officers: overview.officers ?? 0,
+        departments: overview?.departments ?? 0,
+        officers: overview?.officers ?? 0,
         activeEmergencies,
       });
     } catch {

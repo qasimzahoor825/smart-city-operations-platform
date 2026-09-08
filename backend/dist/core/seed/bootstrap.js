@@ -8,6 +8,8 @@ const repository_3 = require("../../modules/departments/repository");
 const repository_4 = require("../../modules/roles/repository");
 const repository_5 = require("../../modules/system/repository");
 const repository_6 = require("../../modules/gis/repository");
+const repository_7 = require("../../modules/news/repository");
+const repository_8 = require("../../modules/complaints/repository");
 const reference_1 = require("./reference");
 const logger_1 = require("../logger");
 /**
@@ -32,9 +34,49 @@ async function insertIfEmpty(collectionName, docs, idOf) {
     await Model.insertMany(docs.map((d) => ({ ...d, id: idOf(d) })));
     logger_1.logger.info(`[bootstrap] provisioned ${docs.length} documents into '${collectionName}'`);
 }
+/**
+ * MongoDB-free fallback: when the database is unreachable the platform still
+ * boots fully by seeding the shared in-memory repositories with the same
+ * demo/reference records normally written to MongoDB. This keeps login,
+ * complaints, GIS, IoT, news and department dashboards alive with ZERO
+ * external services - critical for offline/lab demos.
+ */
+function seedInMemoryData() {
+    const seeded = [];
+    const mark = (name) => {
+        seeded.push(name);
+    };
+    (0, repository_1.collection)("users").seed(repository_2.seedUsers);
+    mark("users");
+    (0, repository_1.collection)("departments").seed(repository_3.seedDepartments);
+    mark("departments");
+    (0, repository_1.collection)("roles").seed(repository_4.seedRoles);
+    mark("roles");
+    repository_5.systemRepository.reset();
+    mark("system_settings");
+    repository_6.gisRepository.reset();
+    mark("gis_layers");
+    repository_7.newsRepository.reset();
+    mark("news_articles");
+    repository_8.complaintRepository.reset();
+    mark("complaints");
+    (0, repository_1.collection)("sla_rules").seed(reference_1.seedSlaRules);
+    mark("sla_rules");
+    (0, repository_1.collection)("complaint_categories").seed(reference_1.seedComplaintCategories);
+    mark("complaint_categories");
+    (0, repository_1.collection)("services").seed(reference_1.seedServices);
+    mark("services");
+    (0, repository_1.collection)("traffic_zones").seed(reference_1.seedTrafficZones);
+    mark("traffic_zones");
+    (0, repository_1.collection)("announcements").seed(reference_1.seedAnnouncements);
+    mark("announcements");
+    logger_1.logger.info(`[bootstrap] MongoDB unavailable — seeded in-memory demo data: ${seeded.join(", ")}`);
+}
 async function bootstrapDatabase() {
-    if ((0, mongo_1.mongoState)() !== "connected")
+    if ((0, mongo_1.mongoState)() !== "connected") {
+        seedInMemoryData();
         return;
+    }
     await insertIfEmpty("users", repository_2.seedUsers, (u) => u.id);
     await insertIfEmpty("departments", repository_3.seedDepartments, (d) => d.id);
     await insertIfEmpty("roles", repository_4.seedRoles, (r) => r.role);
