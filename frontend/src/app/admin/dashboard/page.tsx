@@ -247,9 +247,9 @@ export default function AdminDashboardPage() {
   }, [refresh]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-slate-100 to-teal-50 font-sans text-slate-950">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-200 via-slate-100 to-teal-50 font-sans text-slate-950">
       <AdminSidebar active="Dashboard" />
-      <div className="min-w-0 flex-1">
+      <div className="min-h-screen min-w-0 flex-1 overflow-y-auto">
         <header className="flex h-14 items-center justify-end gap-5 border-b border-slate-200 bg-white px-5">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-200 text-xs">SA</span>
@@ -262,7 +262,7 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <main className="space-y-4 p-5">
+        <main className="space-y-5 p-5">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-black">Super Admin Dashboard</h1>
             <select className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold" defaultValue="High performance KPI">
@@ -273,10 +273,13 @@ export default function AdminDashboardPage() {
           </div>
 
           {loading ? (
-            <p className="py-10 text-sm font-semibold text-slate-400">Loading dashboard data…</p>
+            <div className="flex items-center justify-center py-20">
+              <p className="text-sm font-semibold text-slate-400">Loading dashboard data…</p>
+            </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+              {/* KPI Row */}
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
                 <Kpi icon={<Users className="h-5 w-5" />} label="Total Citizens" value={formatNumber(kpis.citizens)} tone="teal" />
                 <Kpi icon={<Users className="h-5 w-5" />} label="Government Officers" value={formatNumber(kpis.officers)} tone="blue" />
                 <Kpi icon={<Building2 className="h-5 w-5" />} label="Departments" value={formatNumber(kpis.departments)} tone="sky" />
@@ -285,7 +288,8 @@ export default function AdminDashboardPage() {
                 <Kpi icon={<Siren className="h-5 w-5" />} label="Emergency Cases" value={`${formatNumber(kpis.emergenciesActive)} active`} tone="rose" />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_.45fr_.45fr]">
+              {/* Row 1: Activity Chart + Donut + Health */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Panel title="City-wide Activity Chart" action={<RangeSelect value={range} onChange={setRange} />}>
                   <LineChart data={deptPerformance} />
                 </Panel>
@@ -293,10 +297,10 @@ export default function AdminDashboardPage() {
                   <Donut data={complaintStats} resolutionRate={resolutionRate} />
                 </Panel>
                 <Panel title="System Health">
-                  <div className="space-y-3 pt-2 text-sm">
+                  <div className="space-y-3 pt-1 text-sm">
                     {healthRows.map(([label, status, dot]) => (
                       <div key={label} className="flex items-center justify-between">
-                        <span>{label}</span>
+                        <span className="text-slate-600">{label}</span>
                         <span className="flex items-center gap-2 font-semibold text-emerald-700">
                           {status} <span className={`h-3 w-3 rounded-full ${dot}`} />
                         </span>
@@ -306,24 +310,32 @@ export default function AdminDashboardPage() {
                 </Panel>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_.9fr]">
+              {/* Row 2: Department Performance + Activity Timeline */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Panel title="Department Performance Chart" action={<RangeSelect value={range} onChange={setRange} />}>
                   {deptPerformance.length === 0 ? (
-                    <p className="py-10 text-xs font-semibold text-slate-400">No department data available.</p>
+                    <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+                      <p className="text-xs font-semibold text-slate-400">No department data available.</p>
+                    </div>
                   ) : (
                     <BarPairChart data={deptPerformance} />
                   )}
                 </Panel>
                 <Panel title="System Activity Timeline">
                   {activityRows.length === 0 ? (
-                    <p className="py-10 text-xs font-semibold text-slate-400">No recent activity.</p>
+                    <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+                      <p className="text-xs font-semibold text-slate-400">No recent activity.</p>
+                    </div>
                   ) : (
-                    <SimpleTable headers={["Time", "Log"]} rows={activityRows} />
+                    <div className="max-h-48 overflow-y-auto rounded-md border border-slate-100">
+                      <SimpleTable headers={["Time", "Log"]} rows={activityRows} />
+                    </div>
                   )}
                 </Panel>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_.9fr]">
+              {/* Row 3: AI Forecast + IoT Anomaly */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Panel title={`AI Complaint Forecast${forecast ? ` · next ${forecast.days} days` : ""}`} action={forecast ? <span className="rounded bg-teal-50 px-2 py-0.5 text-[10px] font-black text-teal-700 uppercase">{forecast.trend}</span> : undefined}>
                   <ForecastChart result={forecast} />
                 </Panel>
@@ -332,11 +344,16 @@ export default function AdminDashboardPage() {
                 </Panel>
               </div>
 
+              {/* Row 4: Recent Admin Activity */}
               <Panel title="Recent Admin Activity">
                 {recentRows.length === 0 ? (
-                  <p className="py-10 text-xs font-semibold text-slate-400">No recent admin activity.</p>
+                  <div className="flex h-32 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+                    <p className="text-xs font-semibold text-slate-400">No recent admin activity.</p>
+                  </div>
                 ) : (
-                  <SimpleTable headers={["Timestamp", "Department", "Action", "Target"]} rows={recentRows} />
+                  <div className="max-h-52 overflow-y-auto rounded-md border border-slate-100">
+                    <SimpleTable headers={["Timestamp", "Department", "Action", "Target"]} rows={recentRows} />
+                  </div>
                 )}
               </Panel>
             </>
@@ -349,7 +366,7 @@ export default function AdminDashboardPage() {
 
 function AdminSidebar({ active }: { active: string }) {
   return (
-    <aside className="hidden min-h-screen w-52 shrink-0 border-r border-slate-800 bg-gradient-to-b from-slate-900 via-slate-800 to-teal-950 p-3 text-white lg:block">
+    <aside className="sticky top-0 hidden h-screen w-52 shrink-0 overflow-y-auto border-r border-slate-800 bg-gradient-to-b from-slate-900 via-slate-800 to-teal-950 p-3 text-white lg:block">
       <Link href="/" className="mb-5 flex items-center gap-3 px-2 py-2">
         <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-teal-400 to-sky-500 text-white shadow-md shadow-teal-500/40">
           <CircleGauge className="h-5 w-5" />
@@ -422,18 +439,31 @@ function LineChart({ data }: { data: { name: string; total: number }[] }) {
   const poly = points.map((d, i) => `${i * xStep},${yValue(d.total)}`).join(" ");
   const polyOpen = points.map((d, i) => `${i * xStep},${yValue(Math.max(0, (d.total ?? 0) * 0.6))}`).join(" ");
   return (
-    <div className="h-44">
+    <div className="relative h-48">
       <svg viewBox="0 0 620 190" className="h-full w-full">
-        {[40, 80, 120, 160].map((y) => <line key={y} x1="0" x2="620" y1={y} y2={y} stroke="#e2e8f0" />)}
+        {[40, 80, 120, 160].map((y) => (
+          <line key={y} x1="0" x2="620" y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" />
+        ))}
         {points.length === 0 ? (
           <text x="310" y="95" textAnchor="middle" className="fill-slate-400 text-xs">No activity data</text>
         ) : (
           <>
-            <polyline points={poly} fill="none" stroke="#0284c7" strokeWidth="3" />
-            <polyline points={polyOpen} fill="none" stroke="#14b8a6" strokeWidth="3" />
+            <polyline points={poly} fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" />
+            <polyline points={polyOpen} fill="none" stroke="#14b8a6" strokeWidth="2.5" strokeLinejoin="round" strokeDasharray="6 3" />
+            {points.map((d, i) => (
+              <circle key={i} cx={i * xStep} cy={yValue(d.total)} r="3.5" fill="#0284c7" stroke="white" strokeWidth="1.5" />
+            ))}
           </>
         )}
       </svg>
+      <div className="mt-1 flex justify-between text-[10px] text-slate-400 px-1">
+        {points.length > 0 && <span>{points[0]?.name ?? ""}</span>}
+        {points.length > 1 && <span>{points[points.length - 1]?.name ?? ""}</span>}
+      </div>
+      <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded bg-sky-600" /> Total</span>
+        <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded bg-teal-600" style={{ borderTop: "2px dashed #0d9488" }} /> Resolved (est.)</span>
+      </div>
     </div>
   );
 }
@@ -442,14 +472,20 @@ function BarPairChart({ data }: { data: { name: string; total: number; resolved:
   const rows = data.slice(0, 8);
   const max = Math.max(1, ...rows.map((d) => d.total));
   return (
-    <div className="flex h-44 items-end justify-between gap-4 px-3">
-      {rows.length === 0 && <p className="w-full text-center text-xs font-semibold text-slate-400">No department data.</p>}
+    <div className="relative flex h-48 items-end justify-between gap-3 px-2 pt-2">
       {rows.map((d, index) => (
-        <div key={index} className="flex flex-1 items-end justify-center gap-1" title={d.name}>
-          <div className="w-4 rounded-t bg-gradient-to-t from-sky-600 to-sky-400" style={{ height: `${Math.max(4, (d.total / max) * 100)}%` }} />
-          <div className="w-4 rounded-t bg-gradient-to-t from-teal-600 to-teal-400" style={{ height: `${Math.max(4, (d.resolved / max) * 100)}%` }} />
+        <div key={index} className="flex flex-1 flex-col items-center gap-1" title={d.name}>
+          <div className="flex w-full flex-1 items-end justify-center gap-1">
+            <div className="w-5 rounded-t bg-gradient-to-t from-sky-600 to-sky-400 transition-all" style={{ height: `${Math.max(4, (d.total / max) * 100)}%` }} />
+            <div className="w-5 rounded-t bg-gradient-to-t from-teal-600 to-teal-400 transition-all" style={{ height: `${Math.max(4, (d.resolved / max) * 100)}%` }} />
+          </div>
+          <span className="mt-1 w-full truncate text-center text-[10px] font-semibold text-slate-500">{d.name}</span>
         </div>
       ))}
+      <div className="absolute bottom-0 right-0 flex items-center gap-3 text-[10px] text-slate-400">
+        <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-sky-500" /> Total</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-teal-500" /> Resolved</span>
+      </div>
     </div>
   );
 }
@@ -459,7 +495,7 @@ function Donut({ data, resolutionRate }: { data: Record<string, number>; resolut
   const total = entries.reduce((sum, [, value]) => sum + (value ?? 0), 0);
   if (entries.length === 0 || total === 0) {
     return (
-      <div className="flex h-28 items-center justify-center text-xs font-semibold text-slate-400">
+      <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-xs font-semibold text-slate-400">
         No complaint data
       </div>
     );
@@ -474,15 +510,16 @@ function Donut({ data, resolutionRate }: { data: Record<string, number>; resolut
   });
   const gradient = segments.map((s) => `${s.color} ${s.from}% ${s.to}%`).join(", ");
   return (
-    <div className="flex items-center justify-center gap-5">
-      <div className="h-28 w-28 rounded-full" style={{ background: `conic-gradient(${gradient})` }}>
-        <div className="m-8 grid h-12 w-12 place-items-center rounded-full bg-white text-xs font-black">{Math.round(resolutionRate)}%</div>
+    <div className="flex h-48 items-center justify-center gap-6">
+      <div className="h-32 w-32 shrink-0 rounded-full" style={{ background: `conic-gradient(${gradient})` }}>
+        <div className="m-8 grid h-16 w-16 place-items-center rounded-full bg-white text-sm font-black shadow-inner">{Math.round(resolutionRate)}%</div>
       </div>
-      <div className="space-y-1 text-xs">
+      <div className="space-y-1.5 text-xs">
         {segments.map((s) => (
           <p key={s.label} className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-            {s.label} ({Math.round((s.to - s.from) / 360 * 100)}%)
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+            <span className="text-slate-600">{s.label}</span>
+            <span className="font-bold text-slate-800">({Math.round((s.to - s.from) / 360 * 100)}%)</span>
           </p>
         ))}
       </div>
@@ -492,24 +529,26 @@ function Donut({ data, resolutionRate }: { data: Record<string, number>; resolut
 
 function SimpleTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
-        <thead className="bg-slate-50 text-slate-700">
-          <tr>{headers.map((header) => <th key={header} className="p-2 font-black">{header}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((row, index) => (
-            <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex} className="p-2">{cell}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <table className="w-full text-left text-xs">
+      <thead className="sticky top-0 z-10 bg-slate-50 text-slate-600">
+        <tr>{headers.map((header) => <th key={header} className="px-3 py-2 font-black uppercase tracking-wider">{header}</th>)}</tr>
+      </thead>
+      <tbody className="divide-y divide-slate-100">
+        {rows.map((row, index) => (
+          <tr key={index} className="hover:bg-slate-50/60">{row.map((cell, cellIndex) => <td key={cellIndex} className="px-3 py-2 text-slate-600">{cell}</td>)}</tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 function ForecastChart({ result }: { result: ForecastResult | null }) {
   if (!result || result.forecast.length === 0) {
-    return <p className="py-10 text-xs font-semibold text-slate-400">No forecast data available.</p>;
+    return (
+      <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+        <p className="text-xs font-semibold text-slate-400">No forecast data available.</p>
+      </div>
+    );
   }
   const points = result.forecast.slice(0, 14);
   const width = 600;
@@ -527,37 +566,50 @@ function ForecastChart({ result }: { result: ForecastResult | null }) {
       .map((point, i) => `${pad + (points.length - 1 - i) * xStep},${y(point.lower)}`),
   ].join(" ");
   return (
-    <div>
+    <div className="h-48">
       <div className="mb-2 flex flex-wrap gap-3 text-[10px] text-slate-500">
-        <span>Method: <strong>{result.method}</strong></span>
-        <span>Avg: <strong>{result.avgDaily}/day</strong></span>
-        <span>Slope: <strong>{result.slope}</strong></span>
-        <span>Fit (R²): <strong>{result.meta.rSquared}</strong></span>
+        <span>Method: <strong className="text-slate-700">{result.method}</strong></span>
+        <span>Avg: <strong className="text-slate-700">{result.avgDaily}/day</strong></span>
+        <span>Slope: <strong className="text-slate-700">{result.slope}</strong></span>
+        <span>Fit (R²): <strong className="text-slate-700">{result.meta.rSquared}</strong></span>
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-40 w-full">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-32 w-full">
         {[0, 1, 2, 3].map((gridLine) => (
-          <line key={gridLine} x1={pad} x2={width - pad} y1={pad + gridLine * ((height - pad * 2) / 3)} y2={pad + gridLine * ((height - pad * 2) / 3)} stroke="#e2e8f0" />
+          <line key={gridLine} x1={pad} x2={width - pad} y1={pad + gridLine * ((height - pad * 2) / 3)} y2={pad + gridLine * ((height - pad * 2) / 3)} stroke="#e2e8f0" strokeWidth="1" />
         ))}
-        <polygon points={band} fill="#0ea5e9" opacity="0.18" />
-        <polyline points={line} fill="none" stroke="#0284c7" strokeWidth="3" />
+        <polygon points={band} fill="#0ea5e9" opacity="0.15" />
+        <polyline points={line} fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" />
+        {points.map((point, i) => (
+          <circle key={i} cx={pad + i * xStep} cy={y(point.predicted)} r="2.5" fill="#0284c7" stroke="white" strokeWidth="1" />
+        ))}
       </svg>
       <div className="mt-1 flex justify-between text-[10px] text-slate-400">
         <span>{points[0]?.date ?? ""}</span>
         <span>{points[points.length - 1]?.date ?? ""}</span>
       </div>
       <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-1.5 w-4 rounded bg-sky-600" /> Predicted volume</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded bg-sky-300/40" /> 95% confidence band</span>
+        <span className="flex items-center gap-1.5"><span className="h-1 w-4 rounded bg-sky-600" /> Predicted volume</span>
+        <span className="flex items-center gap-1.5"><span className="h-3 w-4 rounded bg-sky-300/40" /> 95% confidence band</span>
       </div>
     </div>
   );
 }
 
 function AnomalyFeed({ overview }: { overview: AnomalyOverview | null }) {
-  if (!overview) return <p className="py-8 text-xs font-semibold text-slate-400">No anomaly data available.</p>;
+  if (!overview) {
+    return (
+      <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+        <p className="text-xs font-semibold text-slate-400">No anomaly data available.</p>
+      </div>
+    );
+  }
   const anomalies = overview.latest.slice(0, 6);
   if (anomalies.length === 0) {
-    return <p className="py-8 text-xs font-semibold text-slate-400">All sensors operating normally.</p>;
+    return (
+      <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50">
+        <p className="text-xs font-semibold text-slate-400">All sensors operating normally.</p>
+      </div>
+    );
   }
   return (
     <div className="space-y-2">
@@ -567,20 +619,22 @@ function AnomalyFeed({ overview }: { overview: AnomalyOverview | null }) {
         <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">{overview.warning} warnings</span>
         <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-600">{overview.activeSensors} sensors</span>
       </div>
-      {anomalies.map((anomaly) => (
-        <div key={anomaly.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 text-xs font-bold text-slate-800">
-              <span className={`h-2 w-2 shrink-0 rounded-full ${anomaly.severity === "CRITICAL" ? "bg-red-500" : "bg-amber-400"}`} />
-              <span className="truncate">{anomaly.sensorName}</span>
-            </p>
-            <p className="mt-0.5 truncate text-[11px] text-slate-500">{anomaly.reason}</p>
+      <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
+        {anomalies.map((anomaly) => (
+          <div key={anomaly.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 transition-colors hover:bg-slate-100/60">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${anomaly.severity === "CRITICAL" ? "bg-red-500" : "bg-amber-400"}`} />
+                <span className="truncate">{anomaly.sensorName}</span>
+              </p>
+              <p className="mt-0.5 truncate text-[11px] text-slate-500">{anomaly.reason}</p>
+            </div>
+            <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-black ${anomaly.severity === "CRITICAL" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+              {anomaly.metricValue}{anomaly.unit} · {anomaly.zScore}σ
+            </span>
           </div>
-          <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-black ${anomaly.severity === "CRITICAL" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
-            {anomaly.metricValue}{anomaly.unit} · {anomaly.zScore}σ
-          </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

@@ -73,7 +73,7 @@ function CountUp({ value }: { value: number }) {
   const ref = React.useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const mv = useMotionValue(0);
-  const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
+  const display = useTransform(mv, (v) => Math.round(v).toLocaleString("en-US"));
 
   React.useEffect(() => {
     if (!inView) return;
@@ -389,7 +389,7 @@ export default function SmartCityHomePage() {
                             <span>Live Traffic Mesh</span>
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                           </div>
-                          <p className="text-sm font-bold text-teal-700">{live.complaints.toLocaleString()} active signals</p>
+                          <p className="text-sm font-bold text-teal-700">{live.complaints.toLocaleString("en-US")} active signals</p>
                         </motion.div>
 
                         <motion.div animate={{ y: [0, 7, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="relative bg-white/90 backdrop-blur border border-slate-200 rounded-xl p-3 shadow-lg">
@@ -397,7 +397,7 @@ export default function SmartCityHomePage() {
                             <span>IoT Water Sensors</span>
                             <span className="w-2 h-2 rounded-full bg-sky-500" />
                           </div>
-                          <p className="text-sm font-bold text-sky-700">{live.departments.toLocaleString()} zones online</p>
+                          <p className="text-sm font-bold text-sky-700">{live.departments.toLocaleString("en-US")} zones online</p>
                         </motion.div>
                       </div>
                     </div>
